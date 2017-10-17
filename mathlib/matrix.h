@@ -6,21 +6,41 @@
 #ifndef MATHLIB_MATRIX_H
 #define MATHLIB_MATRIX_H
 
+#include <vector>
+
 namespace mathlib {
 
 template <typename T>
 class matrix
 {
+  class crow {
+  public:
+    crow() = delete;
+    crow(crow&& /*r*/) = default;
+    crow(const crow& /*r*/) = default;
+    crow(const T* data) : data_(data) {}
+    const T& operator [] (size_t c) const {
+      return data_[c];
+    }
+  private:
+    const T* data_;
+  };
+
 public:
-  matrix() = default;
-  matrix(const int r, const int c, const T& init = T()) {
-
+  matrix() = delete;
+  matrix(const size_t r, const size_t c, const T& init)
+  : rows_(r)
+  , cols_(c)
+  , data_(r * c, init) {
   }
-  //matrix(const Matrix& MSrc);
-  //~matrix();
+  matrix(const size_t r) : matrix(r, 1, T()) {}
+  matrix(const size_t r, const size_t c) : matrix(r, c, T()) {}
 
-  int cols() const;  // number of columns
-  int rows() const;  // number of rows
+  matrix(const matrix& /*m*/) = default;
+  matrix(matrix&& /*m*/) = default;
+
+  size_t cols() const { return cols_; }  // number of columns
+  size_t rows() const { return rows_; }  // number of rows
 
   //Matrix& __fastcall operator = (const Matrix& MSrc);
   /* »нициализаци€ матрицы массивом чисел (если Src==NULL высвобождение занимаемой пам€ти, и Lin=Col=0) */
@@ -51,18 +71,14 @@ public:
   //bool __fastcall operator == (const Extended& Val) const;
   //bool __fastcall operator != (const Extended& Val) const;
 
-  //Extended& __fastcall operator [] (int Count); // Count = 1..(Lin*Col)
-
-  //int __fastcall Index(int L, int C);
+  crow operator [] (size_t r) const {
+    return crow{&data_[r * cols_]};
+  }
 
 private:
-  //int FCol;
-  //int FLin;
-  //Extended *M; // ћассив чисел матрицы
-  //void __fastcall Free(void); // ¬ысвобождение пам€ти, Col и Lin не измен€ютс€
-  //void __fastcall TryCreate(void); // ≈сли Col и Lin не равны нулю, создает массив (Col*Lin) чисел
-  //void __fastcall SetCol(const int Val);
-  //void __fastcall SetLin(const int Val);
+  const size_t rows_;
+  const size_t cols_;
+  std::vector<typename T> data_;  // Array of matrix numbers
 };
 
 }  // namespace mathlib
