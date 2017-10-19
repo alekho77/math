@@ -121,4 +121,13 @@ TEST_F(matrix_test_fixture, multiplication) {
   }
 }
 
+TEST_F(matrix_test_fixture, swap) {
+  matrix<int> m1 = {{1, 2, 3},
+                    {4, 5, 6}};
+  const matrix<int> m2 = {{4, 5, 6},
+                          {1, 2, 3}};
+  m1.swap_row(0, 1);
+  EXPECT_EQ(m2, m1);
+}
+
 }  // namespace mathlib

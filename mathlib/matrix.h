@@ -7,6 +7,7 @@
 #define MATHLIB_MATRIX_H
 
 #include <vector>
+#include <algorithm>
 
 namespace mathlib {
 
@@ -67,9 +68,17 @@ public:
 
   matrix(const matrix& /*m*/) = default;
   matrix(matrix&& /*m*/) = default;
+  ~matrix() = default;
 
   size_t cols() const { return cols_; }  // number of columns
   size_t rows() const { return rows_; }  // number of rows
+
+  matrix<T>& swap_row(size_t r1, size_t r2) {
+    auto a = data_.begin() + r1 * cols_;
+    auto b = data_.begin() + r2 * cols_;
+    std::swap_ranges(a, a + cols_, b);
+    return *this;
+  }
 
   bool operator == (const matrix& m) const {
     if (m.rows_ == rows_ && m.cols_ == cols_) {
