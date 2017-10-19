@@ -38,6 +38,86 @@ TEST_F(matrix_test_fixture, contruct) {
         EXPECT_EQ(1234, m2[r][c]);
       }
     }
+    matrix<int> m3 = std::move(m2);
+    ASSERT_EQ(3, m3.cols());
+    ASSERT_EQ(2, m3.rows());
+    for (size_t r = 0; r < m3.rows(); r++) {
+      for (size_t c = 0; c < m3.cols(); c++) {
+        EXPECT_EQ(1234, m3[r][c]);
+      }
+    }
+  }
+}
+
+TEST_F(matrix_test_fixture, assign) {
+  {
+    matrix<int> m{2,3};
+    for (size_t i = 0; i < m.rows(); i++) {
+      for (size_t j = 0; j < m.cols(); j++) {
+        m[i][j] = static_cast<int>(i + 1) * static_cast<int>(j + 1);
+      }
+    }
+    for (size_t i = 0; i < m.rows(); i++) {
+      for (size_t j = 0; j < m.cols(); j++) {
+        EXPECT_EQ(static_cast<int>(i + 1) * static_cast<int>(j + 1), m[i][j]);
+      }
+    }
+  }
+  {
+    matrix<int> m = {{1, 2, 3},
+                     {4, 5, 6}};
+    ASSERT_EQ(3, m.cols());
+    ASSERT_EQ(2, m.rows());
+    int v = 1;
+    for (size_t r = 0; r < m.rows(); r++) {
+      for (size_t c = 0; c < m.cols(); c++) {
+        EXPECT_EQ(v, m[r][c]);
+        v++;
+      }
+    }
+  }
+  {
+    auto make_matrix = []() {
+      matrix<int> m = {{1, 2, 3}, {4, 5}};
+      return m; };
+    ASSERT_THROW(make_matrix(), std::exception);
+  }
+}
+
+TEST_F(matrix_test_fixture, transpose) {
+  matrix<int> m1 = {{1, 2, 3},
+                    {4, 5, 6}};
+  matrix<int> m2 = transpose(m1);
+  ASSERT_EQ(2, m2.cols());
+  ASSERT_EQ(3, m2.rows());
+  int v = 1;
+  for (size_t c = 0; c < m2.cols(); c++) {
+    for (size_t r = 0; r < m2.rows(); r++) {
+      EXPECT_EQ(v, m2[r][c]);
+      v++;
+    }
+  }
+}
+
+TEST_F(matrix_test_fixture, multiplication) {
+  {
+    matrix<int> m1 = {{1, 2, 3},
+                      {4, 5, 6}};
+    matrix<int> m2 = {{1, 2, 3},
+                      {4, 5, 6}};
+    ASSERT_THROW(m1 * m2, std::exception);
+  }
+  {
+    matrix<int> m1 = {{1, 2, 3},
+                      {4, 5, 6}};
+    matrix<int> m2 = transpose(m1);
+    ASSERT_NO_THROW(m1 * m2);
+    auto m3 = m1 * m2;
+    ASSERT_EQ(2, m3.rows());
+    ASSERT_EQ(2, m3.cols());
+    const matrix<int> m4 = {{14, 32},
+                            {32, 77}};
+    EXPECT_EQ(m4, m3);
   }
 }
 
