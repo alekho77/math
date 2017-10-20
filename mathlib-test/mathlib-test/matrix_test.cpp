@@ -6,6 +6,8 @@ namespace mathlib {
 
 class matrix_test_fixture : public ::testing::Test {
 protected:
+  const matrix<int> M1 = {{1, 2, 3},{4, 5, 6}};
+  const matrix<int> M1S = {{14, 32},{32, 77}}; // M1*trans(M1)
 
 };
 
@@ -106,6 +108,17 @@ TEST_F(matrix_test_fixture, copy) {
   }
 }
 
+TEST_F(matrix_test_fixture, move) {
+  {
+    const matrix<int> m1 = transpose(M1);
+    matrix<int> m2;
+    m2 = M1 * m1;
+    ASSERT_EQ(M1.rows(), m2.rows());
+    ASSERT_EQ(M1.rows(), m2.cols());
+    EXPECT_EQ(M1S, m2);
+  }
+}
+
 TEST_F(matrix_test_fixture, transpose) {
   matrix<int> m1 = {{1, 2, 3},
                     {4, 5, 6}};
@@ -123,23 +136,15 @@ TEST_F(matrix_test_fixture, transpose) {
 
 TEST_F(matrix_test_fixture, multiplication) {
   {
-    matrix<int> m1 = {{1, 2, 3},
-                      {4, 5, 6}};
-    matrix<int> m2 = {{1, 2, 3},
-                      {4, 5, 6}};
-    ASSERT_THROW(m1 * m2, std::exception);
+    ASSERT_THROW(M1 * M1, std::exception);
   }
   {
-    matrix<int> m1 = {{1, 2, 3},
-                      {4, 5, 6}};
-    matrix<int> m2 = transpose(m1);
-    ASSERT_NO_THROW(m1 * m2);
-    auto m3 = m1 * m2;
-    ASSERT_EQ(2, m3.rows());
-    ASSERT_EQ(2, m3.cols());
-    const matrix<int> m4 = {{14, 32},
-                            {32, 77}};
-    EXPECT_EQ(m4, m3);
+    matrix<int> m1 = transpose(M1);
+    ASSERT_NO_THROW(M1 * m1);
+    auto m2 = M1 * m1;
+    ASSERT_EQ(M1.rows(), m2.rows());
+    ASSERT_EQ(M1.rows(), m2.cols());
+    EXPECT_EQ(M1S, m2);
   }
 }
 

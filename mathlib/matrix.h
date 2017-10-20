@@ -72,6 +72,13 @@ public:
     return *this;
   }
 
+  matrix& operator = (matrix&& m) {
+    std::swap(rows_, m.rows_);
+    std::swap(cols_, m.cols_);
+    data_.swap(m.data_);
+    return *this;
+  }
+
   size_t cols() const { return cols_; }  // number of columns
   size_t rows() const { return rows_; }  // number of rows
 
