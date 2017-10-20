@@ -14,34 +14,29 @@ namespace mathlib {
 template <typename T>
 class matrix
 {
-  class crow {
-  public:
-    crow() = delete;
-    crow(crow&& /*r*/) = default;
-    crow(const crow& /*r*/) = default;
-    crow(const T* data) : data_(data) {}
-    const T& operator [] (size_t c) const {
-      return data_[c];
-    }
-  private:
-    const T* data_;
-  };
+  using data_container = std::vector<typename T>;
+  using const_iterator = typename data_container::const_iterator;
+  using iterator = typename data_container::iterator;
 
+  template <typename iter_t>
   class row {
   public:
     row() = delete;
     row(row&& /*r*/) = default;
     row(const row& /*r*/) = default;
-    row(T* data) : data_(data) {}
-    T& operator [] (size_t c) {
-      return data_[c];
+    row(iter_t&& r) : row_begin(r) {}
+    typename iter_t::reference operator [] (size_t c) {
+      return *(row_begin + c);
+    }
+    typename iter_t::reference operator [] (size_t c) const {
+      return *(row_begin + c);
     }
   private:
-    T* data_;
+    iter_t row_begin;
   };
 
 public:
-  matrix() = delete;
+  matrix() : matrix(0, 0, T()) {}
   matrix(const size_t r, const size_t c, const T& init)
     : rows_(r)
     , cols_(c)
@@ -70,8 +65,17 @@ public:
   matrix(matrix&& /*m*/) = default;
   ~matrix() = default;
 
+  matrix& operator = (const matrix& m) {
+    rows_ = m.rows_;
+    cols_ = m.cols_;
+    data_ = m.data_;
+    return *this;
+  }
+
   size_t cols() const { return cols_; }  // number of columns
   size_t rows() const { return rows_; }  // number of rows
+
+  bool empty() const noexcept { return data_.empty(); }
 
   matrix<T>& swap_row(size_t r1, size_t r2) {
     auto a = data_.begin() + r1 * cols_;
@@ -90,17 +94,17 @@ public:
     return !(m == *this);
   }
 
-  crow operator [] (size_t r) const {
-    return crow{&data_[r * cols_]};
+  const row<const_iterator> operator [] (size_t r) const {
+    return row<const_iterator>{data_.cbegin() + (r * cols_)};
   }
-  row operator [] (size_t r) {
-    return row{&data_[r * cols_]};
+  row<iterator> operator [] (size_t r) {
+    return row<iterator>{data_.begin() + (r * cols_)};
   }
 
 private:
-  const size_t rows_;
-  const size_t cols_;
-  std::vector<typename T> data_;  // Array of matrix numbers
+  size_t rows_;
+  size_t cols_;
+  data_container data_;  // Array of matrix numbers
 };
 
 template <typename T>

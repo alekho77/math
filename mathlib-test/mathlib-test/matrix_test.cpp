@@ -11,9 +11,16 @@ protected:
 
 TEST_F(matrix_test_fixture, contruct) {
   {
+    matrix<int> m;
+    EXPECT_EQ(0, m.rows());
+    EXPECT_EQ(0, m.cols());
+    EXPECT_TRUE(m.empty());
+  }
+  {
     const matrix<int> m{2};
     EXPECT_EQ(1, m.cols());
     EXPECT_EQ(2, m.rows());
+    EXPECT_FALSE(m.empty());
   }
   {
     const matrix<int> m{2, 3};
@@ -81,6 +88,21 @@ TEST_F(matrix_test_fixture, assign) {
       matrix<int> m = {{1, 2, 3}, {4, 5}};
       return m; };
     ASSERT_THROW(make_matrix(), std::exception);
+  }
+}
+
+TEST_F(matrix_test_fixture, copy) {
+  {
+    const matrix<int> m1{2, 3, 1234};
+    matrix<int> m2;
+    m2 = m1;
+    ASSERT_EQ(2, m2.rows());
+    ASSERT_EQ(3, m2.cols());
+    for (size_t r = 0; r < m2.rows(); r++) {
+      for (size_t c = 0; c < m2.cols(); c++) {
+        EXPECT_EQ(1234, m2[r][c]);
+      }
+    }
   }
 }
 
