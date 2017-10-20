@@ -42,6 +42,7 @@ public:
   T cond() const;
 
   // Solve the system. The system should be normalized previously.
+  const matrix<T>& solve() noexcept(false);
 
 private:
   matrix<T> X_;
@@ -91,6 +92,18 @@ T linear_equations<T>::cond() const {
     mu_max = std::max(mu_max, std::abs(A_[i][i]));
   }
   return mu_max / mu_min;  // Since triag-matrix has been solved before, so all coeff in diag are greater than null.
+}
+
+template<typename T>
+const matrix<T>& linear_equations<T>::solve() noexcept(false) {
+  X_ = B_;
+  for(int i = static_cast<int>(A_.rows()) - 1; i >= 0; i--) {
+    for (int j = static_cast<int>(A_.cols()) - 1; j > i; j--) {
+      X_[i][0] -= X_[j][0] * A_[i][j];
+    }
+    X_[i][0] /= A_[i][i];
+  }
+  return X_;
 }
 
 }  // namespace mathlib

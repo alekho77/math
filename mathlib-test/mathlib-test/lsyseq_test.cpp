@@ -60,4 +60,23 @@ TEST_F(lsyseq_test_fixture, conditionality) {
   }
 }
 
+TEST_F(lsyseq_test_fixture, solve) {
+  {
+    linear_equations<double> syseq = {A1, B1};
+    ASSERT_NO_THROW(syseq.normalize().solve());
+    EXPECT_EQ(X1, syseq.X());
+  }
+  {
+    linear_equations<double> syseq = {A2, B2};
+    ASSERT_NO_THROW(syseq.normalize().solve());
+    ASSERT_EQ(X2.rows(), syseq.X().rows());
+    ASSERT_EQ(X2.cols(), syseq.X().cols());
+    for (size_t i = 0; i < X2.rows(); i++) {
+      for (size_t j = 0; j < X2.cols(); j++) {
+        EXPECT_DOUBLE_EQ(X2[i][j], syseq.X()[i][j]);
+      }
+    }
+  }
+}
+
 }  // namespace mathlib
