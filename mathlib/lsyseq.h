@@ -31,42 +31,17 @@ public:
   }
   ~linear_equations() = default;
 
-  // Make matrix of the coefficients top-triangular.
-  linear_equations<T>& normalize() noexcept(false) {
-    for (size_t i = 0; i < A_.rows(); i++) {
-      // Find max coefficient in i-column
-      size_t r_max = i;
-      for (size_t r = i + 1; r < A_.rows(); r++) {
-        if (std::abs(A_[r_max][i]) < std::abs(A_[r][i])) {
-          r_max = r;
-        }
-      }
-      if (r_max != i) {
-        A_.swap_row(i, r_max);
-        B_.swap_row(i, r_max);
-      }
-      if (A_[i][i] == 0) {
-        throw std::underflow_error("Main coefficient is null.");
-      }
-      // Turning coefficients below i-row
-      for (size_t r = i + 1; r < A_.rows(); r++) {
-        if (A_[r][i] == 0) {
-          continue;
-        }
-        const T fact = - A_[r][i] / A_[i][i];
-        for (size_t k = i + 1; k < A_.cols(); k++) {
-          A_[r][k] += A_[i][k] * fact;
-        }
-        B_[r][0] += B_[i][0] * fact;
-        A_[r][i] = 0;
-      }
-    }
-    return *this;
-  }
-
   const matrix<T>& A() const { return A_; }
   const matrix<T>& B() const { return B_; }
   const matrix<T>& X() const { return X_; }
+
+  // Make matrix of the coefficients top-triangular.
+  linear_equations<T>& normalize() noexcept(false);
+
+  // Calculate the system conditionality. The system should be normalized previously.
+  T cond() const;
+
+  // Solve the system. The system should be normalized previously.
 
 private:
   matrix<T> X_;
@@ -74,11 +49,52 @@ private:
   matrix<T> B_;
 };
 
+template <typename T>
+linear_equations<T>& linear_equations<T>::normalize() noexcept(false) {
+  for (size_t i = 0; i < A_.rows(); i++) {
+    // Find max coefficient in i-column
+    size_t r_max = i;
+    for (size_t r = i + 1; r < A_.rows(); r++) {
+      if (std::abs(A_[r_max][i]) < std::abs(A_[r][i])) {
+        r_max = r;
+      }
+    }
+    if (r_max != i) {
+      A_.swap_row(i, r_max);
+      B_.swap_row(i, r_max);
+    }
+    if (A_[i][i] == 0) {
+      throw std::underflow_error("Main coefficient is null.");
+    }
+    // Turning coefficients below i-row
+    for (size_t r = i + 1; r < A_.rows(); r++) {
+      if (A_[r][i] == 0) {
+        continue;
+      }
+      const T fact = -A_[r][i] / A_[i][i];
+      for (size_t k = i + 1; k < A_.cols(); k++) {
+        A_[r][k] += A_[i][k] * fact;
+      }
+      B_[r][0] += B_[i][0] * fact;
+      A_[r][i] = 0;
+    }
+  }
+  return *this;
+}
+
+template <typename T>
+T linear_equations<T>::cond() const {
+  T mu_min = std::abs(A_[0][0]);
+  T mu_max = std::abs(A_[0][0]);
+  for (size_t i = 1; i < A_.rows(); i++) {
+    mu_min = std::min(mu_min, std::abs(A_[i][i]));
+    mu_max = std::max(mu_max, std::abs(A_[i][i]));
+  }
+  return mu_max / mu_min;  // Since triag-matrix has been solved before, so all coeff in diag are greater than null.
+}
+
 }  // namespace mathlib
 
-/*  Приведение матрицы коэффициентов к верхней треугольной, совместно с матрицей
-    свободных коэффициентов. A и B изменяються соответственно. Возврешает матрицу A */
-//Matrix& __fastcall UpTrnMat_qs(Matrix& A, Matrix& B, int& iErr);
 /*  Вычисляет детерминант от верхней треугольной матрицы. */
 //Extended __fastcall Det_qs(Matrix& A);
 /*  Решение системы.
