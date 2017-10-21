@@ -38,11 +38,14 @@ public:
   // Make matrix of the coefficients top-triangular.
   linear_equations<T>& normalize() noexcept(false);
 
-  // Calculate the system conditionality. The system should be normalized previously.
+  // Calculate the system conditionality (condition number). The system should be normalized previously.
   T cond() const;
 
   // Solve the system. The system should be normalized previously.
   const matrix<T>& solve() noexcept(false);
+
+  // Calculate the residual of the system solution.
+  T residual(int n = 1) const;
 
 private:
   matrix<T> X_;
@@ -104,6 +107,16 @@ const matrix<T>& linear_equations<T>::solve() noexcept(false) {
     X_[i][0] /= A_[i][i];
   }
   return X_;
+}
+
+template<typename T>
+T linear_equations<T>::residual(int n /*= 1*/) const {
+  matrix<T> R = B_ - A_ * X_;
+  T res = 0;
+  for (size_t i = 0; i < R.rows(); i++) {
+    res += std::pow(std::abs(R[i][0]), n);
+  }
+  return std::pow(res, static_cast<T>(1) / static_cast<T>(n));
 }
 
 }  // namespace mathlib

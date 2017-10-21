@@ -142,6 +142,35 @@ static inline matrix<T> operator * (const matrix<T>& m1, const matrix<T>& m2) no
   throw std::range_error("For matrix multiplication cols of M1 shall be equals rows of M2.");
 }
 
+template <typename T>
+static inline matrix<T> operator + (const matrix<T>& m1, const matrix<T>& m2) noexcept(false) {
+  if (m1.rows() == m2.rows() && m1.cols() == m2.cols()) {
+    matrix<T> rm{m1.rows(), m1.cols()};
+    for (size_t i = 0; i < m1.rows(); i++) {
+      for (size_t j = 0; j < m1.cols(); j++) {
+        rm[i][j] = m1[i][j] + m2[i][j];
+      }
+    }
+    return rm;
+  }
+  throw std::range_error("For matrix addition the sizes of both matrix shall be equals.");
+}
+
+
+template <typename T>
+static inline matrix<T> operator - (const matrix<T>& m1, const matrix<T>& m2) noexcept(false) {
+  if (m1.rows() == m2.rows() && m1.cols() == m2.cols()) {
+    matrix<T> rm{m1.rows(), m1.cols()};
+    for (size_t i = 0; i < m1.rows(); i++) {
+      for (size_t j = 0; j < m1.cols(); j++) {
+        rm[i][j] = m1[i][j] - m2[i][j];
+      }
+    }
+    return rm;
+  }
+  throw std::range_error("For matrix subtraction the sizes of both matrix shall be equals.");
+}
+
 }  // namespace mathlib
 
 #endif  // MATHLIB_MATRIX_H

@@ -17,11 +17,11 @@ protected:
   const matrix<double> X1 = {{1},{2}};
 
   const matrix<double> A2 = {{1,15},{5,75.01}};
-  const matrix<double> B2 = {{17},{255}};
-  const matrix<double> B2e = {{17},{255.03}};
+  const matrix<double> B2 = {{17},{85}};
+  const matrix<double> B2e = {{17},{85.03}};
   const double     condA2 = 2500.0;
   const matrix<double> X2 = {{17},{0}};
-  const matrix<double> X2e = {{2},{3}};
+  const matrix<double> X2e = {{-28},{3}};
 };
 
 TEST_F(lsyseq_test_fixture, intialization) {
@@ -65,6 +65,7 @@ TEST_F(lsyseq_test_fixture, solve) {
     linear_equations<double> syseq = {A1, B1};
     ASSERT_NO_THROW(syseq.normalize().solve());
     EXPECT_EQ(X1, syseq.X());
+    EXPECT_DOUBLE_EQ(0.0, syseq.residual());
   }
   {
     linear_equations<double> syseq = {A2, B2};
@@ -75,6 +76,23 @@ TEST_F(lsyseq_test_fixture, solve) {
       for (size_t j = 0; j < X2.cols(); j++) {
         EXPECT_DOUBLE_EQ(X2[i][j], syseq.X()[i][j]);
       }
+    }
+    for (int n = 1; n <= 2; n++) {
+      EXPECT_DOUBLE_EQ(0.0, syseq.residual(n));
+    }
+  }
+  {
+    linear_equations<double> syseq = {A2, B2e};
+    ASSERT_NO_THROW(syseq.normalize().solve());
+    ASSERT_EQ(X2e.rows(), syseq.X().rows());
+    ASSERT_EQ(X2e.cols(), syseq.X().cols());
+    for (size_t i = 0; i < X2e.rows(); i++) {
+      for (size_t j = 0; j < X2e.cols(); j++) {
+        EXPECT_NEAR(X2e[i][j], syseq.X()[i][j], 1e-6);
+      }
+    }
+    for (int n = 1; n <= 2; n++) {
+      EXPECT_DOUBLE_EQ(0.0, syseq.residual(n));
     }
   }
 }
