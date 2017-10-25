@@ -21,5 +21,8 @@
     <ClInclude Include="lsyseq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nonlsyseq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

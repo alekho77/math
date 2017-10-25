@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClInclude Include="lsyseq.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="nonlsyseq.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
