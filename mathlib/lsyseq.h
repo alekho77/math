@@ -121,23 +121,5 @@ T linear_equations<T>::residual(int n /*= 1*/) const {
 
 }  // namespace mathlib
 
-/*  Вычисляет детерминант от верхней треугольной матрицы. */
-//Extended __fastcall Det_qs(Matrix& A);
-/*  Решение системы.
-    Возврашает матрицу-столбец с решением. */
-//Matrix __fastcall DeqSys(const Matrix& A, const Matrix& B, int& iErr);
-/*  Вычисление невязки решения системы линейных уравнений
-    Возвращает матрицу-столбец с невязкой по каждому из корней */
-//Matrix __fastcall Inex(const Matrix& A, const Matrix& X, const Matrix& B);
-/*  Вычисление среднеквадратичной невязки решения системы линейных уравнений
-    Возвращает число с невязкой */
-//Extended __fastcall SqrtInex(const Matrix& A, const Matrix& X, const Matrix& B);
-/*  Транспонирование матрицы
-    Возвращает транспонированную матрицу */
-//Matrix __fastcall Trans(Matrix& M);
-//---------------------------------------------------------------------------
-/* Получить строку с описанием ошибки ErrCode */
-//AnsiString __fastcall DeqSysErrStr(int ErrCode);
-//---------------------------------------------------------------------------
 #endif  // MATHLIB_LSYSEQ_H
  
