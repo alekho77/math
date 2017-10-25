@@ -21,5 +21,8 @@
     <ClCompile Include="lsyseq_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="diff_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

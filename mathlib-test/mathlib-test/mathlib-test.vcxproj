@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="diff_test.cpp" />
     <ClCompile Include="lsyseq_test.cpp" />
     <ClCompile Include="matrix_test.cpp" />
   </ItemGroup>
