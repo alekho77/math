@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="derivative_test.cpp" />
+    <ClCompile Include="fmatrix_test.cpp" />
     <ClCompile Include="lsyseq_test.cpp" />
     <ClCompile Include="matrix_test.cpp" />
   </ItemGroup>
