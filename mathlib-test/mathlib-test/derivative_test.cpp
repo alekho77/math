@@ -22,10 +22,16 @@ public:
 };
 
 TEST_F(diff_test_fixture, construct) {
+  const auto d1 = make_deriv(&foo1);
+  auto d2 = make_deriv(&diff_test_fixture::foo2, static_cast<diff_test_fixture*>(this));
+  auto d3 = d1;
+}
+
+TEST_F(diff_test_fixture, simple) {
   auto d1 = make_deriv(&foo1);
   auto d2 = make_deriv(&diff_test_fixture::foo2, static_cast<diff_test_fixture*>(this));
-  EXPECT_NEAR(dfoo1_x, d1.diff<0>(x1), 1e-6);
-  EXPECT_NEAR(dfoo2_y, d2.diff<1>(x1, y1, z1), 1e-6);
+  EXPECT_NEAR(dfoo1_x, d1.diff<0>(x1), numeric_helper<double>::epsilon);
+  EXPECT_NEAR(dfoo2_y, d2.diff<1>(x1, y1, z1), 1e-9);
 }
 
 }  // namespace mathlib
