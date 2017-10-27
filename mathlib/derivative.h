@@ -33,20 +33,21 @@ struct is_same_helper<A, B> {
   static constexpr bool value = std::is_same<A, B>::value;
 };
 
-// Partial derivative
+// Derivative
 template<typename R, typename... Args>
-class diff {
+class derivative {
   static_assert(is_floating_point_helper<R, Args...>::value == true, "Differentiating of non-floating number function is not supported.");
   static_assert(is_same_helper<R, Args...>::value == true, "Different types are not allowed.");
   using function_t = std::function<R(Args...)>;
 public:
-  diff(const function_t& f, R eps) : func_(f), epsilon_(eps) {}
-  explicit diff(const function_t& f) : diff(f, std::numeric_limits<R>::epsilon() * (R)(1000)) {}
-  diff(const diff&) = default;
-  diff(diff&&) = default;
+  derivative(const function_t& f, R eps) : func_(f), epsilon_(eps) {}
+  explicit derivative(const function_t& f) : derivative(f, std::numeric_limits<R>::epsilon() * (R)(1000)) {}
+  derivative(const derivative&) = default;
+  derivative(derivative&&) = default;
 
+  // Calculate partial derivative
   template<size_t K>
-  R deriv(Args... args) {
+  R diff(Args... args) {
     static_assert(K < sizeof...(Args), "Index of variable has to be less than number of arguments.");
     using namespace std;
     const auto vars = make_tuple(args...);
@@ -78,13 +79,13 @@ private:
 };
 
 template<typename R, typename... Args>
-typename diff<R, Args...> make_diff(R(*func)(Args...), R eps = (std::numeric_limits<R>::epsilon() * (R)(1000))) {
-  return diff<R, Args...>(func, eps);
+typename derivative<R, Args...> make_deriv(R(*func)(Args...), R eps = (std::numeric_limits<R>::epsilon() * (R)(1000))) {
+  return derivative<R, Args...>(func, eps);
 }
 
 template<typename C, typename R, typename... Args>
-typename diff<R, Args...> make_diff(R(C::*func)(Args...), C* that, R eps = (std::numeric_limits<R>::epsilon() * (R)(1000))) {
-  return diff<R, Args...>([that, func](Args... args)->R { return (that->*func)(args...); }, eps);
+typename derivative<R, Args...> make_deriv(R(C::*func)(Args...), C* that, R eps = (std::numeric_limits<R>::epsilon() * (R)(1000))) {
+  return derivative<R, Args...>([that, func](Args... args)->R { return (that->*func)(args...); }, eps);
 }
 
 }  // namespace mathlib
