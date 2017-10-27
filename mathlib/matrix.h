@@ -40,17 +40,11 @@ class matrix
 
 public:
   matrix() : matrix(0, 0, T()) {}
-  matrix(const size_t r, const size_t c, const T& init)
-    : rows_(r)
-    , cols_(c)
-    , data_(r * c, init) {
-  }
+  matrix(const size_t r, const size_t c, const T& init) : rows_(r), cols_(c), data_(r * c, init) {}
   matrix(const size_t r) : matrix(r, 1, T()) {}
   matrix(const size_t r, const size_t c) : matrix(r, c, T()) {}
   matrix(const std::initializer_list<std::initializer_list<T>>& list) noexcept(false)
-    : rows_(list.size())
-    , cols_(list.begin()->size())
-    , data_(list.size() * list.begin()->size()) {
+    : matrix(list.size(), list.begin()->size()) {
     auto iter = data_.begin();
     for (const auto& r: list) {
       if (r.size() == cols_) {
@@ -66,7 +60,6 @@ public:
 
   matrix(const matrix& /*m*/) = default;
   matrix(matrix&& /*m*/) = default;
-  ~matrix() = default;
 
   matrix& operator = (const matrix& m) {
     rows_ = m.rows_;

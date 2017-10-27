@@ -29,7 +29,6 @@ public:
   linear_equations(const matrix<T>& a, const matrix<T>& b)
     : linear_equations(matrix<T>(a), matrix<T>(b)) {
   }
-  ~linear_equations() = default;
 
   const matrix<T>& A() const { return A_; }
   const matrix<T>& B() const { return B_; }
