@@ -24,7 +24,7 @@
     <ClInclude Include="nonlsyseq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="diff.h">
+    <ClInclude Include="derivative.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

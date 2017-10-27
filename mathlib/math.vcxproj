@@ -125,7 +125,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="diff.h" />
+    <ClInclude Include="derivative.h" />
     <ClInclude Include="lsyseq.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="nonlsyseq.h" />

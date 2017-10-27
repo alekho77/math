@@ -1,4 +1,4 @@
-#include "math/mathlib/diff.h"
+#include "math/mathlib/derivative.h"
 
 #include <gtest/gtest.h>
 
