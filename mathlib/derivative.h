@@ -3,8 +3,8 @@
   (c) 2017 Aleksey Khozin
 */
 
-#ifndef MATHLIB_DIFF_H
-#define MATHLIB_DIFF_H
+#ifndef MATHLIB_DERIVATIVE_H
+#define MATHLIB_DERIVATIVE_H
 
 #include <limits>
 #include <functional>
@@ -129,4 +129,4 @@ typename derivative<R, Args...> make_deriv(R(C::*func)(Args...), C* that, R eps 
 
 }  // namespace mathlib
 
-#endif  // MATHLIB_DIFF_H
+#endif  // MATHLIB_DERIVATIVE_H
