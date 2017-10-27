@@ -21,14 +21,22 @@ struct is_floating_point_helper<First> {
   static constexpr bool value = std::is_floating_point<First>::value;
 };
 
+template<typename A, typename... Rest>
+struct is_same_helper;
+
 template<typename A, typename B, typename... Rest>
-struct is_same_helper {
+struct is_same_helper<A, B, Rest...> {
   static constexpr bool value = std::is_same<A, B>::value && is_same_helper<B, Rest...>::value;
 };
 
 template<typename A, typename B>
 struct is_same_helper<A, B> {
   static constexpr bool value = std::is_same<A, B>::value;
+};
+
+template<typename A>
+struct is_same_helper<A> {
+  static constexpr bool value = true;
 };
 
 template<typename T>
