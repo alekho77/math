@@ -8,12 +8,15 @@
 
 #include <vector>
 #include <algorithm>
+#include <type_traits>
 
 namespace mathlib {
 
 template <typename T>
 class matrix
 {
+  static_assert(std::is_arithmetic<T>::value == true, "Matrix supports only an arithmetic type.");
+
   using data_container = std::vector<typename T>;
   using const_iterator = typename data_container::const_iterator;
   using iterator = typename data_container::iterator;
