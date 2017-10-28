@@ -110,9 +110,9 @@ private:
   data_container data_;  // Array of matrix numbers
 };
 
-template <typename T>
-static inline matrix<T> transpose(const matrix<T>& m) {
-  matrix<T> rm{m.cols(), m.rows()};
+template <typename T, template <typename> typename Matrix>
+static inline typename Matrix<T> transpose(const typename Matrix<T>& m) {
+  typename Matrix<T> rm{m.cols(), m.rows()};
   for (size_t i = 0; i < rm.rows(); i++) {
     for (size_t j = 0; j < rm.cols(); j++) {
       rm[i][j] = m[j][i];
@@ -151,7 +151,6 @@ static inline matrix<T> operator + (const matrix<T>& m1, const matrix<T>& m2) no
   }
   throw std::range_error("For matrix addition the sizes of both matrix shall be equals.");
 }
-
 
 template <typename T>
 static inline matrix<T> operator - (const matrix<T>& m1, const matrix<T>& m2) noexcept(false) {
