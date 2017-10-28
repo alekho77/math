@@ -18,7 +18,7 @@ class fmatrix;
 
 template<typename R, typename... Args>
 class fmatrix<R(Args...)> {
-  static_assert(is_same_helper<R, Args...>::value == true, "Different types are not allowed.");
+  static_assert(are_same<R, Args...>::value == true, "Different types are not allowed.");
 
   using function_t = std::function<R(Args...)>;
   using data_container = std::vector<typename function_t>;

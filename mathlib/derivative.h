@@ -19,12 +19,12 @@ class derivative;
 // Derivative
 template<typename R, typename... Args>
 class derivative<R(Args...)> {
-  static_assert(is_floating_point_helper<R, Args...>::value == true, "Differentiating of non-floating number function is not supported.");
-  static_assert(is_same_helper<R, Args...>::value == true, "Different types are not allowed.");
+  static_assert(are_floating_points<R, Args...>::value == true, "Differentiating of non-floating number function is not supported.");
+  static_assert(are_same<R, Args...>::value == true, "Different types are not allowed.");
   using function_t = std::function<R(Args...)>;
 public:
   derivative(const function_t& f, R eps) : func_(f), epsilon_(eps) {}
-  explicit derivative(const function_t& f) : derivative(f, numeric_helper<R>::epsilon) {}
+  explicit derivative(const function_t& f) : derivative(f, numeric_consts<R>::epsilon) {}
   derivative(const derivative&) = default;
   derivative(derivative&&) = default;
 
@@ -34,7 +34,7 @@ public:
     static_assert(K < sizeof...(Args), "Index of variable has to be less than number of arguments.");
     using namespace std;
     const auto vars = make_tuple(args...);
-    R h = (get<K>(vars) == (R)(0)) ? numeric_helper<R>::step : (abs(get<K>(vars)) * numeric_helper<R>::step);
+    R h = (get<K>(vars) == (R)(0)) ? numeric_consts<R>::step : (abs(get<K>(vars)) * numeric_consts<R>::step);
     auto d = make_dh<K>(h, vars);
     R eps = epsilon(d);
     while (eps > epsilon_) {
@@ -79,12 +79,12 @@ private:
 };
 
 template<typename R, typename... Args>
-typename derivative<R(Args...)> make_deriv(R(*func)(Args...), R eps = numeric_helper<R>::epsilon) {
+typename derivative<R(Args...)> make_deriv(R(*func)(Args...), R eps = numeric_consts<R>::epsilon) {
   return derivative<R(Args...)>(func, eps);
 }
 
 template<typename C, typename R, typename... Args>
-typename derivative<R(Args...)> make_deriv(R(C::*func)(Args...), C* that, R eps = numeric_helper<R>::epsilon) {
+typename derivative<R(Args...)> make_deriv(R(C::*func)(Args...), C* that, R eps = numeric_consts<R>::epsilon) {
   return derivative<R(Args...)>([that, func](Args... args)->R { return (that->*func)(args...); }, eps);
 }
 

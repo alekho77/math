@@ -51,17 +51,17 @@ TEST_F(diff_test_fixture, construct) {
 TEST_F(diff_test_fixture, simple) {
   {
     auto d = make_deriv(&foo1);
-    EXPECT_NEAR(dfoo1, d.diff<0>(1234), numeric_helper<double>::epsilon);
+    EXPECT_NEAR(dfoo1, d.diff<0>(1234), numeric_consts<double>::epsilon);
   }
   {
     auto d = make_deriv(&diff_test_fixture::foo2, static_cast<diff_test_fixture*>(this));
-    EXPECT_NEAR(dfoo2, d.diff<0>(1234, 2, -3), numeric_helper<double>::epsilon);
+    EXPECT_NEAR(dfoo2, d.diff<0>(1234, 2, -3), numeric_consts<double>::epsilon);
     EXPECT_NEAR(dfoo2, d.diff<1>(1234, 2, -3), 1e-9);
     EXPECT_NEAR(dfoo2, d.diff<2>(1234, 2, -3), 1e-9);
   }
   {
     auto d = make_deriv(&foo3);
-    EXPECT_NEAR(dfoo3_0, d.diff<0>(0), numeric_helper<double>::epsilon);
+    EXPECT_NEAR(dfoo3_0, d.diff<0>(0), numeric_consts<double>::epsilon);
     EXPECT_NEAR(dfoo3_1, d.diff<0>(10), 1e-11);
     EXPECT_NEAR(dfoo3_2, d.diff<0>(-10), 1e-11);
   }
