@@ -166,6 +166,17 @@ static inline matrix<T> operator - (const matrix<T>& m1, const matrix<T>& m2) no
   throw std::range_error("For matrix subtraction the sizes of both matrix shall be equals.");
 }
 
+template <typename T>
+static inline matrix<T> operator - (const matrix<T>& m) noexcept(true) {
+  matrix<T> rm{m.rows(), m.cols()};
+  for (size_t i = 0; i < m.rows(); i++) {
+    for (size_t j = 0; j < m.cols(); j++) {
+      rm[i][j] = -m[i][j];
+    }
+  }
+  return rm;
+}
+
 }  // namespace mathlib
 
 #endif  // MATHLIB_MATRIX_H

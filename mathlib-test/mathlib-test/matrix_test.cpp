@@ -189,4 +189,15 @@ TEST_F(matrix_test_fixture, subtraction) {
   }
 }
 
+TEST_F(matrix_test_fixture, unary) {
+  {
+    matrix<int> m = -M1;
+    for (size_t i = 0; i < M1.rows(); i++) {
+      for (size_t j = 0; j < M1.cols(); j++) {
+        EXPECT_EQ(-M1[i][j], m[i][j]);
+      }
+    }
+  }
+}
+
 }  // namespace mathlib
