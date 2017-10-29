@@ -104,6 +104,26 @@ public:
     return row<iterator>{data_.begin() + (r * cols_)};
   }
 
+  matrix<T>& operator += (const matrix<T>& m) noexcept(false) {
+    if (rows_ == m.rows_ && cols_ == m.cols_) {
+      for (size_t i = 0; i < data_.size(); i++) {
+        data_[i] += m.data_[i];
+      }
+      return *this;
+    }
+    throw std::range_error("For matrix addition the sizes of both matrix shall be equals.");
+  }
+
+  matrix<T>& operator -= (const matrix<T>& m) noexcept(false) {
+    if (rows_ == m.rows_ && cols_ == m.cols_) {
+      for (size_t i = 0; i < data_.size(); i++) {
+        data_[i] -= m.data_[i];
+      }
+      return *this;
+    }
+    throw std::range_error("For matrix addition the sizes of both matrix shall be equals.");
+  }
+
 private:
   size_t rows_;
   size_t cols_;

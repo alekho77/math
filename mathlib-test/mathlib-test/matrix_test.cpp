@@ -171,6 +171,16 @@ TEST_F(matrix_test_fixture, addition) {
       }
     }
   }
+  {
+    matrix<int> m1{M1};
+    ASSERT_THROW(m1 += M1S, std::exception);
+    ASSERT_NO_THROW(m1 += M1);
+    for (size_t i = 0; i < M1.rows(); i++) {
+      for (size_t j = 0; j < M1.cols(); j++) {
+        EXPECT_EQ(M1[i][j] * 2, m1[i][j]);
+      }
+    }
+  }
 }
 
 TEST_F(matrix_test_fixture, subtraction) {
@@ -181,6 +191,16 @@ TEST_F(matrix_test_fixture, subtraction) {
   }
   {
     matrix<int> m1 = M1 - M1;
+    for (size_t i = 0; i < M1.rows(); i++) {
+      for (size_t j = 0; j < M1.cols(); j++) {
+        EXPECT_EQ(0, m1[i][j]);
+      }
+    }
+  }
+  {
+    matrix<int> m1{M1};
+    ASSERT_THROW(m1 -= M1S, std::exception);
+    ASSERT_NO_THROW(m1 -= M1);
     for (size_t i = 0; i < M1.rows(); i++) {
       for (size_t j = 0; j < M1.cols(); j++) {
         EXPECT_EQ(0, m1[i][j]);
