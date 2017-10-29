@@ -8,7 +8,7 @@ protected:
 };
 
 TEST_F(nonlsyseq_test_fixture, intialization) {
-  nonlinear_equations<float(float)>({[](float x) { return x; }, [](float x) { return 2*x; }, [](float x) { return 3*x; }});
+  EXPECT_THROW(nonlinear_equations<float(float)>({[](float x) { return x; }, [](float x) { return 2*x; }}), std::exception);
   
   //EXPECT_THROW(linear_equations<double>({{1, 1, 1},{5, 3, 2}}, {{25},{0}}), std::exception);
   //EXPECT_THROW(linear_equations<double>({{1, 1, 1},{5, 3, 2},{5, 3, 2},{0, 1, -1}}, {{25},{0},{6},{0}}), std::exception);
