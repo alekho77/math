@@ -39,9 +39,8 @@ public:
 private:
   template<size_t... I>
   void make_derivatives(const function_t& fun, size_t idx, std::index_sequence<I...>) {
-    const derivative_t& deriv = derivative_t{fun};
-    derivatives_.push_back(deriv);
-    make_jacobian_row(idx, {make_derivative<I>(deriv)...});
+    derivatives_.push_back(derivative_t{fun});
+    make_jacobian_row(idx, {make_derivative<I>(derivatives_.back())...});
   }
 
   template<size_t K>
