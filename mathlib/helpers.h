@@ -60,6 +60,21 @@ struct numeric_consts<long double> {
   static constexpr long double step = 1e-5L;
 };
 
+template<typename T>
+T powi(const T val, int p) {
+  T res = 1;
+  if (p >= 0) {
+    for (int i = 0; i < p; i++) {
+      res *= val;
+    }
+  } else {
+    for (int i = p; i < 0; i++) {
+      res /= val;
+    }
+  }
+  return res;
+}
+
 }  // namespace mathlib
 
 #endif  // MATHLIB_HELPERS_H

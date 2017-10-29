@@ -7,6 +7,7 @@
 #define MATHLIB_LSYSEQ_H
 
 #include "matrix.h"
+#include "helpers.h"
 
 namespace mathlib {
 
@@ -113,7 +114,7 @@ T linear_equations<T>::residual(int n /*= 1*/) const {
   matrix<T> R = B_ - A_ * X_;
   T res = 0;
   for (size_t i = 0; i < R.rows(); i++) {
-    res += std::pow(std::abs(R[i][0]), n);
+    res += powi(std::abs(R[i][0]), n);
   }
   return std::pow(res, static_cast<T>(1) / static_cast<T>(n));
 }
