@@ -21,7 +21,7 @@ struct are_floating_points<First> {
   static constexpr bool value = std::is_floating_point<First>::value;
 };
 
-template<typename A, typename... Rest>
+template<typename...>
 struct are_same;
 
 template<typename A, typename B, typename... Rest>
