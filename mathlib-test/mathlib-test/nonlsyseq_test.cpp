@@ -16,10 +16,10 @@ protected:
   const matrix<double> X1 = {{1},{2}};
 
   static double foo1(double x) { return (x - 10) * (x + 10); }
-  const double foo1_a[2] = {-1, +1};
-  const double foo1_x[2] = {-10, 10};
+  const double foo1_a[3] = {-1, +1, 0};
+  const double foo1_x[3] = {-10, 10, 10};
   static double foo2(double x) { return std::exp(-std::abs((x - 2) * (x + 2))) - 1.0 / M_E; }
-  const double foo2_a[4] = {-2.1, -1.5, 1.5, 2.1 };
+  const double foo2_a[4] = {-5, -1.9, 1.9, 5 };
   const double foo2_x[4] = {-std::sqrt(5), -std::sqrt(3), std::sqrt(3), std::sqrt(5) };
 };
 
@@ -38,7 +38,7 @@ TEST_F(nonlsyseq_test_fixture, simple) {
     ASSERT_EQ(1, x.cols());
     ASSERT_EQ(2, x.rows());
     for (size_t i = 0; i < x.rows(); i++) {
-      EXPECT_DOUBLE_EQ(X1[i][0], x[i][0]);
+      EXPECT_NEAR(X1[i][0], x[i][0], numeric_consts<double>::epsilon);
     }
   }
   {
@@ -47,7 +47,6 @@ TEST_F(nonlsyseq_test_fixture, simple) {
       const auto x = syseq.solve(foo1_a[i]);
       EXPECT_DOUBLE_EQ(foo1_x[i], x[0][0]);
     }
-    EXPECT_THROW(syseq.solve(0), std::exception);
   }
 }
 
@@ -56,7 +55,7 @@ TEST_F(nonlsyseq_test_fixture, complex) {
     nonlinear_equations<double(double)> syseq{&foo2};
     for (size_t i = 0; i < std::size(foo2_a); i++) {
       const auto x = syseq.solve(foo2_a[i]);
-      EXPECT_DOUBLE_EQ(foo2_x[i], x[0][0]);
+      EXPECT_NEAR(foo2_x[i], x[0][0], numeric_consts<double>::epsilon);
     }
   }
 }

@@ -49,6 +49,10 @@ public:
     }
     return (get<0>(d) + get<1>(d)) / (R)(2);
   }
+
+  R fun(Args... args) const {
+    return func_(args...);
+  }
 private:
   template<size_t K, size_t... I>
   R dh(const R h, const std::tuple<Args...>& vars, std::index_sequence<I...>) const {

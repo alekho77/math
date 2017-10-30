@@ -79,11 +79,23 @@ private:
   template<size_t... I>
   void make_derivatives(const function_t& fun, size_t idx, std::index_sequence<I...>) {
     derivatives_.push_back(derivative_t{fun});
-    make_jacobian_row(idx, {make_derivative<I>(derivatives_.back())...});
+    make_jacobian_row(idx, {make_derivative<I>(idx, derivatives_.back())...});
   }
 
   template<size_t K>
-  function_t make_derivative(const derivative_t& deriv) {
+  function_t make_derivative(size_t idx, const derivative_t& deriv) {
+    using namespace std;
+    if (K == idx) {
+      return [&deriv](Args... args)->R {
+        const tuple<Args&...> vars = {args...};
+        const R min_d = (max)(numeric_consts<R>::step, abs(deriv.fun(args...) / (increment * max((R)1, abs(get<K>(vars))))));
+        const R d = deriv.diff<K>(args...);
+        if (abs(d) < min_d) {
+          return copysign(min_d, d);
+        }
+        return d;
+      };
+    }
     return [&deriv](Args... args)->R { return deriv.diff<K>(args...); };
   }
 
@@ -105,6 +117,7 @@ private:
   }
 
   static constexpr size_t args_size = sizeof...(Args);
+  static constexpr R increment = (R)(0.1);
   fmatrix<R(Args...)> F_ = fmatrix<R(Args...)>{args_size};  // Ñolumn-matrix for system of non-linear equations, it is assumed that each F_[i][0](args...) = 0.
   fmatrix<R(Args...)> W_ = fmatrix<R(Args...)>{args_size, args_size};  // Jacobian
   std::vector<derivative_t> derivatives_;
