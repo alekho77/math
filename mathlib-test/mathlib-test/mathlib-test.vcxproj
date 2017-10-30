@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="approx_test.cpp" />
     <ClCompile Include="derivative_test.cpp" />
     <ClCompile Include="fmatrix_test.cpp" />
     <ClCompile Include="helpers_test.cpp" />
