@@ -9,8 +9,11 @@ protected:
 };
 
 TEST_F(approx_test_fixture, contruct) {
-  approx<double> appx;
-  appx(10.0, 10.0, 20.0);
+  approx<double, 2> appx;
+   appx(1.0, 2.0, 3.0)
+       (4.0, 5.0, 6.0);
+
+   appx.approach();
 }
 
 }  // namespace mathlib
