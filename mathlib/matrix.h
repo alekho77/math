@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <type_traits>
+#include <cassert>
 
 namespace mathlib {
 
@@ -27,14 +28,25 @@ class matrix
     row() = delete;
     row(row&& /*r*/) = default;
     row(const row& /*r*/) = default;
-    row(iter_t&& r) : row_begin(r) {}
+    row(size_t cols, iter_t&& r) : cols_(cols), row_begin(r) {}
     typename iter_t::reference operator [] (size_t c) {
+      assert(c < cols_);
       return *(row_begin + c);
     }
     typename iter_t::reference operator [] (size_t c) const {
+      assert(c < cols_);
       return *(row_begin + c);
     }
+    row& operator = (std::initializer_list<T>&& list) {
+      assert(list.size() == cols_);
+      auto iter = row_begin;
+      for (const auto& v: list) {
+        *iter++ = v;
+      }
+      return *this;
+    }
   private:
+    const size_t cols_;
     iter_t row_begin;
   };
 
@@ -49,8 +61,7 @@ public:
     for (const auto& r: list) {
       if (r.size() == cols_) {
         for (const auto& i : r) {
-          *iter = i;
-          ++iter;
+          *iter++ = i;
         }
       } else {
         throw std::range_error("Row lengths are different in the initialization list.");
@@ -98,10 +109,12 @@ public:
   }
 
   const row<const_iterator> operator [] (size_t r) const {
-    return row<const_iterator>{data_.cbegin() + (r * cols_)};
+    assert(r < rows_);
+    return row<const_iterator>{cols_, data_.cbegin() + (r * cols_)};
   }
   row<iterator> operator [] (size_t r) {
-    return row<iterator>{data_.begin() + (r * cols_)};
+    assert(r < rows_);
+    return row<iterator>{cols_, data_.begin() + (r * cols_)};
   }
 
   matrix<T>& operator += (const matrix<T>& m) noexcept(false) {

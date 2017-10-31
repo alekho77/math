@@ -91,6 +91,22 @@ TEST_F(matrix_test_fixture, assign) {
       return m; };
     ASSERT_THROW(make_matrix(), std::exception);
   }
+  {
+    const matrix<int> m = {{1, 2, 3},
+                           {4, 5, 6}};
+    EXPECT_DEATH(m[2], "");
+    EXPECT_DEATH(m[1][3], "");
+  }
+  {
+    matrix<int> m{2,3};
+    EXPECT_DEATH(m[2][0] = 1, "");
+    EXPECT_DEATH(m[1][3] = 2, "");
+    m[0] = {1, 2, 3};
+    m[1] = {4, 5, 6};
+    EXPECT_EQ(M1, m);
+    EXPECT_DEATH((m[1] = {1, 2}), "");
+    EXPECT_DEATH((m[1] = {1, 2, 3, 4}), "");
+  }
 }
 
 TEST_F(matrix_test_fixture, copy) {
