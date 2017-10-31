@@ -25,7 +25,7 @@ public:
   approx& operator ()(Args... args) {
     static_assert(sizeof...(Args) == (N + 1), "Number of arguments must be one more than variables.");
     static_assert(are_same<T, Args...>::value == true, "All types must be the same.");
-    add_approach({args...});
+    approaches_.push_back({args...});
     return *this;
   }
 
@@ -48,13 +48,9 @@ private:
 
   using pack_t = decltype(helper(std::make_index_sequence<N + 1>()));
 
-  void add_approach(pack_t&& data) {
-    approaches_.push_back(data);
-  }
-
   template <size_t... I>
   void matrix_row(size_t idx, matrix<T>& A, matrix<T>& B, const pack_t& pack, std::index_sequence<I...>) {
-    A[idx][I] = std::get<I>(pack)...;
+    A[idx] = {std::get<I>(pack)...};
     B[idx][0] = std::get<N>(pack);
   }
 
