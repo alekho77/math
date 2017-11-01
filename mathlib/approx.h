@@ -1,5 +1,5 @@
 /*
-  Numerical approximation.
+  Linear approximation.
   (c) 2017 Aleksey Khozin
 */
 
@@ -75,4 +75,4 @@ private:
 
 }  // namespace mathlib
 
-#endif  // MATHLIB_DERIVATIVE_H
+#endif  // MATHLIB_APPROX_H
