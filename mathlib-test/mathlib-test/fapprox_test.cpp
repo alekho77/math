@@ -18,6 +18,7 @@ TEST_F(fapprox_test_fixture, simple) {
     const double f = foo_src1(x);
     appx([x, f](double a, double b) { return a * (1 - std::exp(- b * x)) - f; });
   }
+  appx.approach(9.0, 0.0);
 }
 
 }  // namespace mathlib
