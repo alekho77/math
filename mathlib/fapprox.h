@@ -37,7 +37,7 @@ public:
     return approach(transpose(matrix<R>{{ args... }}), numeric_consts<R>::epsilon);
   }
 
-  fapprox& approach(matrix<R> x, const R epsilon) {
+  fapprox& approach(matrix<R> /*x*/, const R /*epsilon*/) {
     fmatrix<R(Args...)> W{approaches_.size(), sizeof...(Args)};
     fmatrix<R(Args...)> F{approaches_.size()};
     std::vector<derivative_t> derivatives_;

@@ -88,7 +88,7 @@ private:
     if (K == idx) {
       return [&deriv](Args... args)->R {
         const tuple<Args&...> vars = {args...};
-        const R min_d = (max)(numeric_consts<R>::step, abs(deriv.fun(args...) / (increment * max((R)1, abs(get<K>(vars))))));
+        const R min_d = (max)(numeric_consts<R>::step, abs(deriv.fun(args...) / (increment * max(increment, abs(get<K>(vars))))));
         const R d = deriv.diff<K>(args...);
         if (abs(d) < min_d) {
           return copysign(min_d, d);
