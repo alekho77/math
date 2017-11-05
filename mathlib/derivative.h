@@ -23,11 +23,18 @@ class derivative<R(Args...)> {
   static_assert(are_same<R, Args...>::value == true, "Different types are not allowed.");
   using function_t = std::function<R(Args...)>;
 public:
+  derivative() : derivative(function_t()) {}
   derivative(const function_t& f, R eps) : func_(f), epsilon_(eps) {}
   explicit derivative(const function_t& f) : derivative(f, numeric_consts<R>::epsilon) {}
   explicit derivative(function_t&& f) : derivative(f, numeric_consts<R>::epsilon) {}
   derivative(const derivative&) = default;
   derivative(derivative&&) = default;
+  
+  derivative& operator = (derivative&& that) {
+    std::swap(epsilon_, that.epsilon_);
+    std::swap(func_, that.func_);
+    return *this;
+  }
 
   // Calculate partial derivative
   template<size_t K>
@@ -79,7 +86,7 @@ private:
     return (get<0>(d) == (R)(0) || (get<1>(d) == (R)(0))) ? abs(get<0>(d) - get<1>(d)) : abs((get<0>(d) - get<1>(d)) / get<0>(d));
   }
 
-  const R epsilon_;
+  R epsilon_;
   function_t func_;
 };
 

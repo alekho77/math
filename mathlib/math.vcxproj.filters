@@ -39,5 +39,8 @@
     <ClInclude Include="fapprox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="jacobian.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

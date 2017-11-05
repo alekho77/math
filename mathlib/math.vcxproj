@@ -130,6 +130,7 @@
     <ClInclude Include="fapprox.h" />
     <ClInclude Include="fmatrix.h" />
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="jacobian.h" />
     <ClInclude Include="lsyseq.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="nonlsyseq.h" />

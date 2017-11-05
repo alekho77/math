@@ -8,7 +8,7 @@
 
 #include "fmatrix.h"
 #include "lsyseq.h"
-#include "derivative.h"
+#include "jacobian.h"
 
 namespace mathlib {
 
@@ -29,7 +29,7 @@ public:
       auto fiter = list.begin();
       for (size_t i = 0; i < args_size; i++, ++fiter) {
         F_[i][0] = *fiter;
-        make_derivatives(*fiter, i, std::index_sequence_for<Args...>{});
+        W_.initialize_row(i, *fiter);
       }
     } else {
       throw std::invalid_argument("Number of equations shall be equal number of variables.");
@@ -77,49 +77,28 @@ public:
 
 private:
   template<size_t... I>
-  void make_derivatives(const function_t& fun, size_t idx, std::index_sequence<I...>) {
-    derivatives_.push_back(derivative_t{fun});
-    make_jacobian_row(idx, {make_derivative<I>(idx, derivatives_.back())...});
-  }
-
-  template<size_t K>
-  function_t make_derivative(size_t idx, const derivative_t& deriv) {
-    using namespace std;
-    if (K == idx) {
-      return [&deriv](Args... args)->R {
-        const tuple<Args&...> vars = {args...};
-        const R min_d = (max)(numeric_consts<R>::step, abs(deriv.fun(args...) / (increment * max(increment, abs(get<K>(vars))))));
-        const R d = deriv.diff<K>(args...);
-        if (abs(d) < min_d) {
-          return copysign(min_d, d);
-        }
-        return d;
-      };
-    }
-    return [&deriv](Args... args)->R { return deriv.diff<K>(args...); };
-  }
-
-  void make_jacobian_row(size_t idx, const std::initializer_list<function_t>& list) {
-    auto fiter = list.begin();
-    for (size_t j = 0; j < args_size; j++, ++fiter) {
-      W_[idx][j] = *fiter;
-    }
-  }
-
-  template<size_t... I>
   R residual_adapter(int n, const matrix<R>& x, std::index_sequence<I...>) const {
     return residual(n, x[I][0]...);
   }
 
   template<size_t... I>
   linear_equations<R> make_syseq(const matrix<R>& x, std::index_sequence<I...>) const {
-    return linear_equations<R>(W_(x[I][0]...), -F_(x[I][0]...));
+    using namespace std;
+    auto w = W_(x[I][0]...);
+    auto f = -F_(x[I][0]...);
+    for (size_t i = 0; i < w.rows(); i++) {
+      const R min_d = (max)(numeric_consts<R>::step, abs(f[i][0] / (increment * max(increment, abs(x[i][0])))));
+      if (abs(w[i][i]) < min_d) {
+        w[i][i] = copysign(min_d, w[i][i]);
+      }
+    }
+    return linear_equations<R>(w, f);
   }
 
   static constexpr size_t args_size = sizeof...(Args);
   static constexpr R increment = (R)(0.1);
   fmatrix<R(Args...)> F_ = fmatrix<R(Args...)>{args_size};  // Ñolumn-matrix for system of non-linear equations, it is assumed that each F_[i][0](args...) = 0.
-  fmatrix<R(Args...)> W_ = fmatrix<R(Args...)>{args_size, args_size};  // Jacobian
+  jacobian<R(Args...)> W_ = jacobian<R(Args...)>{args_size};
   std::vector<derivative_t> derivatives_;
 };
 
