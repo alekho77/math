@@ -25,6 +25,7 @@ class derivative<R(Args...)> {
 public:
   derivative(const function_t& f, R eps) : func_(f), epsilon_(eps) {}
   explicit derivative(const function_t& f) : derivative(f, numeric_consts<R>::epsilon) {}
+  explicit derivative(function_t&& f) : derivative(f, numeric_consts<R>::epsilon) {}
   derivative(const derivative&) = default;
   derivative(derivative&&) = default;
 

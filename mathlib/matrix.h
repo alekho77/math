@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <type_traits>
 #include <cassert>
+#include <utility>
 
 namespace mathlib {
 
@@ -52,10 +53,10 @@ class matrix
 
 public:
   matrix() : matrix(0, 0, T()) {}
-  matrix(const size_t r, const size_t c, const T& init) : rows_(r), cols_(c), data_(r * c, init) {}
+  matrix(const size_t r, const size_t c, T&& init) : rows_(r), cols_(c), data_(r * c, std::forward<T>(init)) {}
   matrix(const size_t r) : matrix(r, 1, T()) {}
   matrix(const size_t r, const size_t c) : matrix(r, c, T()) {}
-  matrix(const std::initializer_list<std::initializer_list<T>>& list) noexcept(false)
+  matrix(std::initializer_list<std::initializer_list<T>>&& list) noexcept(false)
     : matrix(list.size(), list.begin()->size()) {
     auto iter = data_.begin();
     for (const auto& r: list) {

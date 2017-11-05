@@ -46,7 +46,7 @@ public:
   fmatrix() : fmatrix(0, 0) {}
   explicit fmatrix(const size_t r) : fmatrix(r, 1) {}
   fmatrix(const size_t r, const size_t c) : rows_(r), cols_(c), data_(r * c, typename function_t()) {}
-  fmatrix(const std::initializer_list<std::initializer_list<function_t>>& list) noexcept(false)
+  fmatrix(std::initializer_list<std::initializer_list<function_t>>&& list) noexcept(false)
     : fmatrix(list.size(), list.begin()->size()) {
     auto iter = data_.begin();
     for (const auto& r : list) {

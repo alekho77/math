@@ -32,10 +32,9 @@ class approx {
 public:
   // Add new approach, the last arg is the const term (b).
   template <typename... Args>
-  approx& operator ()(Args... args) {
+  approx& operator ()(Args&&... args) {
     static_assert(sizeof...(Args) == (N + 1), "Number of arguments must be one more than variables.");
-    static_assert(are_same<T, Args...>::value == true, "All types must be the same.");
-    approaches_.push_back({args...});
+    approaches_.push_back({std::forward<Args>(args)...});
     return *this;
   }
 

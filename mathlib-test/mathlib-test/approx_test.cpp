@@ -14,16 +14,16 @@ protected:
 TEST_F(approx_test_fixture, simple) {
   {
     approx<double, 2> appx;
-    appx(0.0, 1.0, -3.0)  // 8 * x - 3
-        (1.0, 1.0, 5.0)
-        (-1.0, 1.0, -11.0);
+    appx(0u, 1.0f, -3)  // 8 * x - 3
+        (1, 1, 5)
+        (-1, 1, -11);
     EXPECT_EQ(M1, appx.approach().get_as_tuple());
   }
   {
     approx<double, 3> appx;
     for (int i = 0; i < 11; i++) {
-      const double x = (double)(i - 5);
-      appx(x * x, x, 1.0, foo2(x));
+      const int x = i - 5;
+      appx(x * x, x, 1, foo2(x));
     }
     auto m = appx.approach().get_as_matrix();
     ASSERT_EQ(M2.rows(), m.rows());
