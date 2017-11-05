@@ -44,20 +44,23 @@ struct numeric_consts;
 
 template<>
 struct numeric_consts<float> {
-  static constexpr float epsilon = 1e-3f;
-  static constexpr float step = 1e-2f;
+  static constexpr float epsilon = 0.001f;
+  static constexpr float step = 0.01f;
+  static constexpr float increment = 0.1f;
 };
 
 template<>
 struct numeric_consts<double> {
   static constexpr double epsilon = 1e-12;
   static constexpr double step = 1e-4;
+  static constexpr double increment = 0.01;
 };
 
 template<>
 struct numeric_consts<long double> {
   static constexpr long double epsilon = 1e-12L;
   static constexpr long double step = 1e-5L;
+  static constexpr long double increment = 0.01L;
 };
 
 template<typename T>

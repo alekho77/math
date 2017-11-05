@@ -20,7 +20,7 @@ class jacobian<R(Args...)> {
   using derivative_t = derivative<R(Args...)>;
 public:
   explicit jacobian(size_t rows) : W_(rows, sizeof...(Args)), derivatives_(rows) {}
-  jacobian(std::initializer_list<function_t>&& flist) : jacobian(flist.size()) {
+  jacobian(const std::initializer_list<function_t>& flist) : jacobian(flist.size()) {
     auto fiter = flist.begin();
     for (size_t i = 0; i < flist.size(); i++, ++fiter) {
       initialize_row(i, *fiter);

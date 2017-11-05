@@ -6,7 +6,6 @@
 #ifndef MATHLIB_NONLSYSEQ_H
 #define MATHLIB_NONLSYSEQ_H
 
-#include "fmatrix.h"
 #include "lsyseq.h"
 #include "jacobian.h"
 
@@ -19,19 +18,13 @@ template<typename R, typename... Args>
 class nonlinear_equations<R(Args...)> {
   static_assert(sizeof...(Args) > 0, "Functions of the system shall have arguments.");
   using function_t = std::function<R(Args...)>;
-  using derivative_t = derivative<R(Args...)>;
 
 public:
   nonlinear_equations() = delete;
-  nonlinear_equations(const std::initializer_list<function_t>& list) {
-    if (list.size() == args_size) {
-      derivatives_.reserve(args_size);
-      auto fiter = list.begin();
-      for (size_t i = 0; i < args_size; i++, ++fiter) {
-        F_[i][0] = *fiter;
-        W_.initialize_row(i, *fiter);
-      }
-    } else {
+  nonlinear_equations(const std::initializer_list<function_t>& list)
+    : F_(transpose(fmatrix<R(Args...)>{list}))
+    , W_(list) {
+    if (list.size() != sizeof...(Args)) {
       throw std::invalid_argument("Number of equations shall be equal number of variables.");
     }
   }
@@ -41,14 +34,10 @@ public:
   }
 
   matrix<R> solve(matrix<R> x, const R epsilon) const noexcept(false) {
-    linear_equations<R> syseq = make_syseq(x, std::index_sequence_for<Args...>{});
-    matrix<R> dx = syseq.normalize().solve();
-    x += dx;
+    x += make_syseq(x, std::index_sequence_for<Args...>{}).normalize().solve();
     R eps = residual(1, x);
     while (eps > epsilon) {
-      syseq = make_syseq(x, std::index_sequence_for<Args...>{});
-      dx = syseq.normalize().solve();
-      matrix<R> xt = x + dx;
+      matrix<R> xt = x + make_syseq(x, std::index_sequence_for<Args...>{}).normalize().solve();
       R epst = residual(1, xt);
       if (epst >= eps) {
         break;
@@ -87,7 +76,7 @@ private:
     auto w = W_(x[I][0]...);
     auto f = -F_(x[I][0]...);
     for (size_t i = 0; i < w.rows(); i++) {
-      const R min_d = (max)(numeric_consts<R>::step, abs(f[i][0] / (increment * max(increment, abs(x[i][0])))));
+      const R min_d = (max)(numeric_consts<R>::step, abs(f[i][0] / (numeric_consts<R>::increment * max(numeric_consts<R>::increment, abs(x[i][0])))));
       if (abs(w[i][i]) < min_d) {
         w[i][i] = copysign(min_d, w[i][i]);
       }
@@ -95,11 +84,8 @@ private:
     return linear_equations<R>(w, f);
   }
 
-  static constexpr size_t args_size = sizeof...(Args);
-  static constexpr R increment = (R)(0.1);
-  fmatrix<R(Args...)> F_ = fmatrix<R(Args...)>{args_size};  // Ñolumn-matrix for system of non-linear equations, it is assumed that each F_[i][0](args...) = 0.
-  jacobian<R(Args...)> W_ = jacobian<R(Args...)>{args_size};
-  std::vector<derivative_t> derivatives_;
+  fmatrix<R(Args...)> F_;  // Ñolumn-matrix for system of non-linear equations, it is assumed that each F_[i][0](args...) = 0.
+  jacobian<R(Args...)> W_;
 };
 
 }  // namespace mathlib
