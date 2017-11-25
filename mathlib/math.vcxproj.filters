@@ -42,5 +42,8 @@
     <ClInclude Include="jacobian.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="neuron.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
