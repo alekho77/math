@@ -10,51 +10,105 @@
 
 #include <utility>
 #include <cmath>
+#include <tuple>
 
 namespace mathlib {
 
 template <typename T>
 struct SLOPE {
-  T slope = 1;
+  T slope_ = T(1);
 };
 
 template <typename T>
 struct NOSLOPE {
-  static constexpr T slope = 1;
+  static constexpr T slope_ = T(1);
 };
 
 template <typename T, typename S = NOSLOPE<T>>
-struct sigmoid : S {
+struct SIGMOID : S {
   T operator () (T v) {
-    return T(2) / (T(1) + std::exp(-S::slope * v)) - T(1);
+    return T(2) / (T(1) + std::exp(-S::slope_ * v)) - T(1);
   }
 };
 
 template <typename T>
 struct BIAS {
-  T bias = 0;
+  T bias_ = T(0);
 };
 
 template <typename T>
 struct NOBIAS {
-  static constexpr T bias = 0;
+  static constexpr T bias_ = T(0);
 };
 
-template <typename T, size_t N, typename B = BIAS<T>, typename F = sigmoid<T>>
-class neuron {
+template <typename T, size_t N, typename B = BIAS<T>, typename F = SIGMOID<T>>
+class neuron : private B {
   static_assert(std::is_floating_point<T>::value == true, "Artificial neuron can be built only on floating point numbers.");
   static_assert(N > 0, "Number of AN synapses shall be greater than 0.");
 
   static constexpr bool use_bias = std::is_same<BIAS<T>, B>::value;
   static constexpr bool use_slope = std::is_base_of<SLOPE<T>, F>::value;
+
+  template <size_t I>
+  struct TypeForIdx { typedef T Type; };
+
+  template <size_t... I>
+  static auto helper(std::index_sequence<I...>) -> decltype(std::make_tuple(TypeForIdx<I>::Type()...)) {}
+
+  using data_t = decltype(helper(std::make_index_sequence<N>()));
+
 public:
-  template <typename... Args>
-  T operator ()(Args&&... args) {
-    static_assert(sizeof...(Args) == N, "Number of arguments must be equal synapses.");
-    //{std::forward<Args>(args)...}
-    return T();
+  neuron() {
+    initialize([](size_t) { return T(1); });
   }
+
+  template <typename G>
+  inline void initialize(G gen) {
+    initializer(gen, std::make_index_sequence<N>());
+  }
+
+  template <typename... Args>
+  inline T operator ()(Args&&... args) {
+    static_assert(sizeof...(Args) == N, "Number of arguments must be equal synapses.");
+    return actfun_(combiner<N>(std::forward_as_tuple(args...)));
+  }
+
+  template <typename = std::enable_if_t<use_bias>>
+  inline void set_bias(T b) {
+    bias_ = b;
+  }
+  inline T bias() const { return bias_; }
+
+  template <typename = std::enable_if_t<use_slope>>
+  inline void set_slope(T s) {
+    actfun_.slope_ = s;
+  }
+  inline T slope() const { return actfun_.slope_; }
+
+  template <typename... Args>
+  inline void set_weights(Args&&... args) {
+    static_assert(sizeof...(Args) == N, "Number of arguments must be equal synapses.");
+    weights_ = std::forward_as_tuple(args...);
+  }
+  inline data_t weights() const { return weights_; }
+
 private:
+  template <size_t I>
+  inline T combiner(const data_t& inputs) {
+    return std::get<I-1>(inputs) * std::get<I-1>(weights_) + combiner<I-1>(inputs);
+  }
+  template <>
+  inline T combiner<0>(const data_t&) {
+    return bias_;
+  }
+
+  template <typename G, size_t... I>
+  inline void initializer(const G& gen, std::index_sequence<I...>) {
+    weights_ = std::forward_as_tuple(gen(I)...);
+  }
+
+  F actfun_;
+  data_t weights_;
 };
 
 }  // namespace mathlib
