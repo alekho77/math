@@ -42,5 +42,8 @@
     <ClCompile Include="neuron_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nnetwrok_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

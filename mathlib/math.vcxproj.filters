@@ -48,5 +48,8 @@
     <ClInclude Include="nnetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="static_indexes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
