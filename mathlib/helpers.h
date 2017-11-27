@@ -8,6 +8,8 @@
 
 #include <limits>
 #include <type_traits>
+#include <tuple>
+#include <utility>
 
 namespace mathlib {
 
@@ -77,6 +79,17 @@ T powi(const T val, int p) {
   }
   return res;
 }
+
+template <typename T, size_t N>
+class make_tuple_type {
+  template <size_t I>
+  struct TypeForIdx { typedef T Type; };
+
+  template <size_t... I>
+  static auto helper(std::index_sequence<I...>) -> decltype(std::make_tuple(TypeForIdx<I>::Type()...)) {}
+public:
+  using tuple_type = decltype(helper(std::make_index_sequence<N>()));
+};
 
 }  // namespace mathlib
 

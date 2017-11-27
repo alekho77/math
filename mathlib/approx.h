@@ -12,7 +12,6 @@
 
 #include <vector>
 #include <memory>
-#include <tuple>
 
 namespace mathlib {
 
@@ -20,14 +19,8 @@ template<typename T, size_t N>
 class approx {
   static_assert(N > 0, "Must be at least one variable.");
 
-  template <size_t I>
-  struct TypeForIdx { typedef T Type; };
-
-  template <size_t... I>
-  static auto helper(std::index_sequence<I...>) -> decltype(std::make_tuple(TypeForIdx<I>::Type()...)) {}
-
-  using pack_t = decltype(helper(std::make_index_sequence<N + 1>()));
-  using coef_t = decltype(helper(std::make_index_sequence<N>()));
+  using pack_t = typename make_tuple_type<T, N + 1>::tuple_type;
+  using coef_t = typename make_tuple_type<T, N>::tuple_type;
 
 public:
   // Add new approach, the last arg is the const term (b).

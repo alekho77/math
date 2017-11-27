@@ -8,9 +8,7 @@
 
 #include "helpers.h"
 
-#include <utility>
 #include <cmath>
-#include <tuple>
 
 namespace mathlib {
 
@@ -49,13 +47,7 @@ class neuron : private B {
   static constexpr bool use_bias = std::is_same<BIAS<T>, B>::value;
   static constexpr bool use_slope = std::is_base_of<SLOPE<T>, F>::value;
 
-  template <size_t I>
-  struct TypeForIdx { typedef T Type; };
-
-  template <size_t... I>
-  static auto helper(std::index_sequence<I...>) -> decltype(std::make_tuple(TypeForIdx<I>::Type()...)) {}
-
-  using data_t = decltype(helper(std::make_index_sequence<N>()));
+  using weights_t = typename make_tuple_type<T, N>::tuple_type;
 
 public:
   neuron() {
@@ -90,15 +82,15 @@ public:
     static_assert(sizeof...(Args) == N, "Number of arguments must be equal synapses.");
     weights_ = std::forward_as_tuple(args...);
   }
-  inline data_t weights() const { return weights_; }
+  inline weights_t weights() const { return weights_; }
 
 private:
   template <size_t I>
-  inline T combiner(const data_t& inputs) {
+  inline T combiner(const weights_t& inputs) {
     return std::get<I-1>(inputs) * std::get<I-1>(weights_) + combiner<I-1>(inputs);
   }
   template <>
-  inline T combiner<0>(const data_t&) {
+  inline T combiner<0>(const weights_t&) {
     return bias_;
   }
 
@@ -108,7 +100,7 @@ private:
   }
 
   F actfun_;
-  data_t weights_;
+  weights_t weights_;
 };
 
 }  // namespace mathlib
