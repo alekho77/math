@@ -45,5 +45,8 @@
     <ClInclude Include="neuron.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nnetwork.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

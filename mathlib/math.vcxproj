@@ -134,6 +134,7 @@
     <ClInclude Include="lsyseq.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="neuron.h" />
+    <ClInclude Include="nnetwork.h" />
     <ClInclude Include="nonlsyseq.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
