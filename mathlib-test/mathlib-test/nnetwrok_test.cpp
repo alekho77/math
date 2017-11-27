@@ -20,8 +20,8 @@ TEST_F(nnetwork_test_fixture, construct) {
   using Map = type_pack<map1, map2, map3>;
   
   nnetwork<InputLayer, OutputLayer, Map> network;
-  auto res = network(0, 1, 2);
-  EXPECT_EQ(std::make_tuple(2.0, 3.0, 2.0), res);
+  auto res = network(-1, 0, 1);
+  EXPECT_EQ(std::make_tuple(0, 0, 0), res);
 }
 
 }  // namespace mathlib

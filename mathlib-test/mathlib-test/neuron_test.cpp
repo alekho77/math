@@ -4,11 +4,7 @@
 
 namespace mathlib {
 
-class neuron_test_fixture : public ::testing::Test {
-protected:
-};
-
-TEST_F(neuron_test_fixture, construct) {
+TEST(neuron_test, construct) {
   {
     neuron<double, 1> n1;
     EXPECT_EQ(0, n1(0));

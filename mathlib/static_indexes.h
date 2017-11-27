@@ -14,15 +14,13 @@ namespace mathlib {
 template <size_t... I>
 struct index_pack {
   static constexpr size_t size = sizeof...(I);
-  static const std::array<size_t, sizeof...(I)> indexes;
+  static constexpr size_t indexes[size] = {I...};
 };
-
-template <size_t... I>
-const std::array<size_t, sizeof...(I)> index_pack<I...>::indexes = {I...};
 
 template <typename Pack, size_t I>
 static constexpr size_t get_index() {
-  return std::get<I>(Pack::indexes);
+  static_assert(I < Pack::size, "Index out of bounds.");
+  return Pack::indexes[I];
 }
 
 template <typename... P>
@@ -39,15 +37,18 @@ struct type_pack<P, Rest...> {
 
 template <typename Pack, size_t I>
 struct get_type {
-  static_assert(!std::is_same<Pack, type_pack<>>::value, "index out of bounds");
+  static_assert(!std::is_same<Pack, type_pack<>>::value, "Index out of bounds.");
   using type = typename get_type<typename Pack::next, I - 1>::type;
 };
 
 template <typename Pack>
 struct get_type<Pack, 0> {
-  static_assert(!std::is_same<Pack, type_pack<>>::value, "index out of bounds");
+  static_assert(!std::is_same<Pack, type_pack<>>::value, "Index out of bounds.");
   using type = typename Pack::type;
 };
+
+template <typename Pack, size_t I>
+using get_type_t = typename get_type<Pack, I>::type;
 
 template <typename Pack>
 static constexpr size_t pack_size() {

@@ -45,5 +45,8 @@
     <ClCompile Include="nnetwrok_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="static_indexes_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
