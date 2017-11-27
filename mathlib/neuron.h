@@ -24,7 +24,7 @@ struct NOSLOPE {
 
 template <typename T, typename S = NOSLOPE<T>>
 struct SIGMOID : S {
-  T operator () (T v) {
+  T operator () (T v) const {
     return T(2) / (T(1) + std::exp(-S::slope_ * v)) - T(1);
   }
 };
@@ -47,9 +47,11 @@ class neuron : private B {
   static constexpr bool use_bias = std::is_same<BIAS<T>, B>::value;
   static constexpr bool use_slope = std::is_base_of<SLOPE<T>, F>::value;
 
-  using weights_t = typename make_tuple_type<T, N>::tuple_type;
 
 public:
+  static constexpr size_t num_synapses = N;
+  using weights_t = typename make_tuple_type<T, N>::tuple_type;
+
   neuron() {
     initialize([](size_t) { return T(1); });
   }
@@ -60,7 +62,7 @@ public:
   }
 
   template <typename... Args>
-  inline T operator ()(Args&&... args) {
+  inline T operator ()(Args&&... args) const {
     static_assert(sizeof...(Args) == N, "Number of arguments must be equal synapses.");
     return actfun_(combiner<N>(std::forward_as_tuple(args...)));
   }
@@ -86,11 +88,11 @@ public:
 
 private:
   template <size_t I>
-  inline T combiner(const weights_t& inputs) {
+  inline T combiner(const weights_t& inputs) const {
     return std::get<I-1>(inputs) * std::get<I-1>(weights_) + combiner<I-1>(inputs);
   }
   template <>
-  inline T combiner<0>(const weights_t&) {
+  inline T combiner<0>(const weights_t&) const {
     return bias_;
   }
 
