@@ -18,14 +18,14 @@ static_assert(2 == i3size, "Invalid index array size");
 constexpr size_t psize = pack_size<pack_t>();
 static_assert(3 == psize, "Invalid type pack size");
 
-constexpr size_t cidx1 = get_index<indexes1_t, 3>();
-constexpr size_t cidx2 = get_index<indexes2_t, 2>();
-constexpr size_t cidx3 = get_index<indexes3_t, 1>();
+constexpr size_t cidx1 = get_index<3, indexes1_t>();
+constexpr size_t cidx2 = get_index<2, indexes2_t>();
+constexpr size_t cidx3 = get_index<1, indexes3_t>();
 static_assert(4 == cidx1, "Wrong index");
 static_assert(3 == cidx2, "Wrong index");
 static_assert(2 == cidx3, "Wrong index");
 
-constexpr size_t cidx4 = get_index<get_type_t<pack_t, 1>, 1>();
+constexpr size_t cidx4 = get_index<1, get_type_t<1, pack_t>>();
 static_assert(4 == cidx4, "Wrong index");
 }
 

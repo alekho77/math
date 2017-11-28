@@ -17,7 +17,7 @@ struct index_pack {
   static constexpr size_t indexes[size] = {I...};
 };
 
-template <typename Pack, size_t I>
+template <size_t I, typename Pack>
 static constexpr size_t get_index() {
   static_assert(I < Pack::size, "Index out of bounds.");
   return Pack::indexes[I];
@@ -35,20 +35,20 @@ struct type_pack<P, Rest...> {
   using next = type_pack<Rest...>;
 };
 
-template <typename Pack, size_t I>
+template <size_t I, typename Pack>
 struct get_type {
   static_assert(!std::is_same<Pack, type_pack<>>::value, "Index out of bounds.");
-  using type = typename get_type<typename Pack::next, I - 1>::type;
+  using type = typename get_type<I - 1, typename Pack::next>::type;
 };
 
 template <typename Pack>
-struct get_type<Pack, 0> {
+struct get_type<0, Pack> {
   static_assert(!std::is_same<Pack, type_pack<>>::value, "Index out of bounds.");
   using type = typename Pack::type;
 };
 
-template <typename Pack, size_t I>
-using get_type_t = typename get_type<Pack, I>::type;
+template <size_t I, typename Pack>
+using get_type_t = typename get_type<I, Pack>::type;
 
 template <typename Pack>
 static constexpr size_t pack_size() {

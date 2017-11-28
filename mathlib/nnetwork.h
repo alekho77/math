@@ -53,7 +53,7 @@ private:
   output_t mapping(H&& data, std::index_sequence<I...>) const {
     // data is result of input network that should be mapped on output layer inputs.
     // take I-th output neuron and I-th index map:
-    return std::forward_as_tuple(map_neuron<I, get_type_t<Map, I>>(data)...);
+    return std::forward_as_tuple(map_neuron<I, get_type_t<I, Map>>(data)...);
   }
 
   template <size_t I, typename IdxPack, typename H>
@@ -65,7 +65,7 @@ private:
 
   template <typename IdxPack, typename Neuron, typename H, size_t... J>
   value_t call_neuron(const Neuron& n, const H& data, std::index_sequence<J...>) const {
-    return n(std::get<get_index<IdxPack, J>()>(data)...);
+    return n(std::get<get_index<J, IdxPack>()>(data)...);
   }
 
   Input  input_;
