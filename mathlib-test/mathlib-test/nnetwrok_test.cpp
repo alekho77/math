@@ -29,6 +29,9 @@ protected:
 TEST_F(nnetwork_test_fixture, construct) {
   {
     network1_t network1;
+    const auto& layer = network1.get_layer<0>();
+    //EXPECT_EQ(OutputLayer(), layer);
+
     auto res1 = network1(-1, 0, 1);
     EXPECT_EQ(std::make_tuple(0, 0, 0), res1);
   }

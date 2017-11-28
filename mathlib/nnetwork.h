@@ -24,6 +24,9 @@ struct input_layer {
   }
 };
 
+template <size_t I, typename Network>
+struct network_layer;
+
 // Recursive template to build artificial neural network.
 /**
   Input - either special type of input layer model or another nnetwork.
@@ -48,6 +51,11 @@ public:
   output_t operator ()(Args... args) const {
     static_assert(sizeof...(Args) == input_size, "Number of arguments must be equal input layer.");
     return mapping(input_(args...), std::make_index_sequence<output_size>());
+  }
+
+  template <size_t I>
+  typename network_layer<I, nnetwork>::type& get_layer() const {
+    return output_;
   }
 
 private:
