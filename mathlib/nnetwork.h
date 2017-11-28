@@ -54,11 +54,21 @@ public:
   }
 
   template <size_t I>
-  const typename network_layer<I, nnetwork>::type& get_layer() const {
-    return input_.get_layer<I>();
+  const typename network_layer<I, nnetwork>::type& layer() const {
+    return input_.layer<I>();
   }
   template <>
-  const typename network_layer<Input::num_layers, nnetwork>::type& get_layer<Input::num_layers>() const {
+  const typename network_layer<Input::num_layers, nnetwork>::type& layer<Input::num_layers>() const {
+    return output_;
+  }
+
+
+  template <size_t I>
+  typename network_layer<I, nnetwork>::type& layer() {
+    return input_.layer<I>();
+  }
+  template <>
+  typename network_layer<Input::num_layers, nnetwork>::type& layer<Input::num_layers>() {
     return output_;
   }
 
