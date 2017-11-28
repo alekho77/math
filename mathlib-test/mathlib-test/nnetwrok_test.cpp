@@ -29,16 +29,49 @@ protected:
 TEST_F(nnetwork_test_fixture, construct) {
   {
     network1_t network1;
-    const auto& layer = network1.get_layer<0>();
-    //EXPECT_EQ(OutputLayer(), layer);
-
     auto res1 = network1(-1, 0, 1);
+
     EXPECT_EQ(std::make_tuple(0, 0, 0), res1);
+
+    const auto& layer1 = network1.get_layer<0>();
+
+    EXPECT_EQ(0, std::get<0>(layer1).bias());
+    EXPECT_EQ(0, std::get<1>(layer1).bias());
+    EXPECT_EQ(0, std::get<2>(layer1).bias());
+
+    EXPECT_EQ(1, std::get<0>(layer1).slope());
+    EXPECT_EQ(1, std::get<1>(layer1).slope());
+    EXPECT_EQ(1, std::get<2>(layer1).slope());
+
+    EXPECT_EQ(std::make_tuple(1, 1), std::get<0>(layer1).weights());
+    EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<1>(layer1).weights());
+    EXPECT_EQ(std::make_tuple(1, 1), std::get<2>(layer1).weights());
   }
   {
     const network2_t network2;
     auto res2 = network2(1, 0, -1);
+
     EXPECT_EQ(std::make_tuple(0), res2);
+
+    const auto& layer1 = network2.get_layer<0>();
+
+    EXPECT_EQ(0, std::get<0>(layer1).bias());
+    EXPECT_EQ(0, std::get<1>(layer1).bias());
+    EXPECT_EQ(0, std::get<2>(layer1).bias());
+
+    EXPECT_EQ(1, std::get<0>(layer1).slope());
+    EXPECT_EQ(1, std::get<1>(layer1).slope());
+    EXPECT_EQ(1, std::get<2>(layer1).slope());
+
+    EXPECT_EQ(std::make_tuple(1, 1), std::get<0>(layer1).weights());
+    EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<1>(layer1).weights());
+    EXPECT_EQ(std::make_tuple(1, 1), std::get<2>(layer1).weights());
+
+    const auto& layer2 = network2.get_layer<1>();
+
+    EXPECT_EQ(0, std::get<0>(layer2).bias());
+    EXPECT_EQ(1, std::get<0>(layer2).slope());
+    EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<0>(layer2).weights());
   }
 }
 

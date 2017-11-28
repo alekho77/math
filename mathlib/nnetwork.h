@@ -54,7 +54,11 @@ public:
   }
 
   template <size_t I>
-  typename network_layer<I, nnetwork>::type& get_layer() const {
+  const typename network_layer<I, nnetwork>::type& get_layer() const {
+    return input_.get_layer<I>();
+  }
+  template <>
+  const typename network_layer<Input::num_layers, nnetwork>::type& get_layer<Input::num_layers>() const {
     return output_;
   }
 
