@@ -16,6 +16,7 @@ struct input_layer {
   using value_t = T;
   using input_tuple = typename make_tuple_type<T, N>::tuple_type;
   static constexpr size_t input_size = N;
+  static constexpr size_t num_layers = 0;
 
   template <typename... Args>
   input_tuple operator ()(Args... args) const {
@@ -36,9 +37,10 @@ class nnetwork {
 
 public:
   using value_t = typename Input::value_t;
-  static constexpr size_t input_size = Input::input_size;  // Number of network input arguments.
-
   using output_t = typename make_tuple_type<value_t, output_size>::tuple_type;
+
+  static constexpr size_t input_size = Input::input_size;  // Number of network input arguments.
+  static constexpr size_t num_layers = 1 + Input::num_layers;  // Number layers that are contained in the network.
 
   template <typename... Args>
   output_t operator ()(Args... args) const {
