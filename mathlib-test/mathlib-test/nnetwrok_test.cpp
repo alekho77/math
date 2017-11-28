@@ -18,9 +18,12 @@ protected:
 
   using network1_t = nnetwork<InputLayer, OutputLayer, Map>;
   static_assert(network1_t::num_layers == 1, "Wrong layers number");
+  static_assert(std::is_same<network_layer_t<0, network1_t>, OutputLayer>::value, "Wrong layer type");
 
   using network2_t = nnetwork<network1_t, std::tuple<Neuron1>, type_pack<index_pack<1, 2, 0>>>;
   static_assert(network2_t::num_layers == 2, "Wrong layers number");
+  static_assert(std::is_same<network_layer_t<0, network2_t>, OutputLayer>::value, "Wrong layer type");
+  static_assert(std::is_same<network_layer_t<1, network2_t>, std::tuple<Neuron1>>::value, "Wrong layer type");
 };
 
 TEST_F(nnetwork_test_fixture, construct) {

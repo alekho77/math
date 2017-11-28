@@ -38,6 +38,8 @@ class nnetwork {
 public:
   using value_t = typename Input::value_t;
   using output_t = typename make_tuple_type<value_t, output_size>::tuple_type;
+  using output_layer_t = Output;
+  using input_layer_t = Input;
 
   static constexpr size_t input_size = Input::input_size;  // Number of network input arguments.
   static constexpr size_t num_layers = 1 + Input::num_layers;  // Number layers that are contained in the network.
@@ -71,6 +73,25 @@ private:
   Input  input_;
   Output output_;
 };
+
+template <size_t D, typename Network>
+struct network_layer_downcount {
+  using type = typename network_layer_downcount<D - 1, typename Network::input_layer_t>::type;
+};
+
+template <typename Network>
+struct network_layer_downcount<1, Network> {
+  using type = typename Network::output_layer_t;
+};
+
+template <size_t I, typename Network>
+struct network_layer {
+  static_assert(I < Network::num_layers, "Index out if bounds");
+  using type = typename network_layer_downcount<Network::num_layers - I, Network>::type;
+};
+
+template <size_t I, typename Network>
+using network_layer_t = typename network_layer<I, Network>::type;
 
 }  // namespace mathlib
 
