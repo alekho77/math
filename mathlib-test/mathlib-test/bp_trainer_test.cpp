@@ -19,9 +19,16 @@ protected:
 };
 
 TEST_F(bp_trainer_test_fixture, construct) {
-
+  std::mt19937 gen(1977);
+  std::uniform_real_distribution<double> dis(-10, 10);
   auto trainer = make_bp_trainer(network);
-  trainer.randomize();
+  trainer.randomize(10, 1977);
+  const auto& layer1 = network.layer<0>();
+  const auto& layer2 = network.layer<1>();
+  EXPECT_EQ(std::make_tuple(dis(gen), dis(gen)), std::get<0>(layer2).weights());
+  EXPECT_EQ(dis(gen), std::get<0>(layer2).bias());
+  EXPECT_EQ(std::make_tuple(dis(gen), dis(gen)), std::get<1>(layer1).weights());
+  EXPECT_EQ(std::make_tuple(dis(gen), dis(gen)), std::get<0>(layer1).weights());
 }
 
 }  // namespace mathlib

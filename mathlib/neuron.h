@@ -45,6 +45,7 @@ class neuron : private B {
   static_assert(N > 0, "Number of AN synapses shall be greater than 0.");
 
 public:
+  using value_t = T;
   static constexpr bool use_bias = std::is_same<BIAS<T>, B>::value;
   static constexpr bool use_slope = std::is_base_of<SLOPE<T>, F>::value;
   static constexpr size_t num_synapses = N;
