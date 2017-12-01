@@ -44,11 +44,9 @@ class neuron : private B {
   static_assert(std::is_floating_point<T>::value == true, "Artificial neuron can be built only on floating point numbers.");
   static_assert(N > 0, "Number of AN synapses shall be greater than 0.");
 
+public:
   static constexpr bool use_bias = std::is_same<BIAS<T>, B>::value;
   static constexpr bool use_slope = std::is_base_of<SLOPE<T>, F>::value;
-
-
-public:
   static constexpr size_t num_synapses = N;
   using weights_t = typename make_tuple_type<T, N>::tuple_type;
 
