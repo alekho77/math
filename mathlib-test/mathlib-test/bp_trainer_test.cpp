@@ -31,4 +31,10 @@ TEST_F(bp_trainer_test_fixture, construct) {
   EXPECT_EQ(std::make_tuple(dis(gen), dis(gen)), std::get<0>(layer1).weights());
 }
 
+TEST_F(bp_trainer_test_fixture, iteration) {
+  auto trainer = make_bp_trainer(network);
+  trainer.randomize(10, 1977);
+  /*auto e1 =*/ trainer(std::make_tuple(0, 0), std::make_tuple(0));
+}
+
 }  // namespace mathlib
