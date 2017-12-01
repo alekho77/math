@@ -51,5 +51,8 @@
     <ClInclude Include="static_indexes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bp_trainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

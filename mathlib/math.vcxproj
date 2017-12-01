@@ -126,6 +126,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="approx.h" />
+    <ClInclude Include="bp_trainer.h" />
     <ClInclude Include="derivative.h" />
     <ClInclude Include="fapprox.h" />
     <ClInclude Include="fmatrix.h" />
