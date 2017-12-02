@@ -30,9 +30,7 @@ public:
   explicit bp_trainer(Network& net) : network_(net) {}
 
   void randomize(value_t range = 1, unsigned seed = std::random_device()()) {
-    std::mt19937 gen(seed);
-    std::uniform_real_distribution<value_t> dis(-range, range);
-    pass_layers<Network::num_layers - 1>([&gen, &dis]() { return dis(gen); });
+    (randomizer(network_))(range, seed);
   }
 
   value_t operator ()(const input_t& inputs, const typename Network::output_t& expected_outputs) {
@@ -46,70 +44,85 @@ public:
   }
 
 private:
-  template <size_t K>
-  void pass_layers(const apply_t& fun) {
-    using Layer = network_layer_t<K, Network>;
-    pass_neurons<std::tuple_size<Layer>::value - 1, Layer>()(network_.layer<K>(), fun);
-    pass_layers<K - 1>(fun);
-  }
+  class randomizer {
+  public:
+    explicit randomizer(Network& net) : network_(net) {}
 
-  template <>
-  void pass_layers<0>(const apply_t& fun) {
-    using Layer = network_layer_t<0, Network>;
-    pass_neurons<std::tuple_size<Layer>::value - 1, Layer>()(network_.layer<0>(), fun);
-  }
-
-  template <size_t I, typename Layer>
-  struct pass_neurons {
-    void operator ()(Layer& layer, const apply_t& fun) {
-      using Neuron = std::tuple_element_t<I, Layer>;
-      apply_neuron<Neuron, Neuron::use_bias>()(std::get<I>(layer), fun);
-      pass_neurons<I - 1, Layer>()(layer, fun);
+    void operator ()(value_t range, unsigned seed) {
+      gen_.seed(seed);
+      dis_ = std::uniform_real_distribution<value_t>(-range, range);
+      walk_layer<0>();
     }
+
+  private:
+    template <size_t K>
+    void walk_layer() {
+      using Layer = network_layer_t<K, Network>;
+      layer_walker<Layer>(*this)(network_.layer<K>());
+      walk_layer<K + 1>();
+    }
+    template <>
+    void walk_layer<Network::num_layers>() {}
+
+    template <typename Layer>
+    struct layer_walker {
+      explicit layer_walker(randomizer& rand) : random_(rand) {}
+
+      void operator ()(Layer& layer) {
+        walk_neuron<0>(layer);
+      }
+
+      template <size_t I>
+      void walk_neuron(Layer& layer) {
+        using Neuron = std::tuple_element_t<I, Layer>;
+        (neuron_walker<Neuron, Neuron::use_bias>(random_))(std::get<I>(layer));
+        walk_neuron<I + 1>(layer);
+      }
+      template <>
+      void walk_neuron<std::tuple_size<Layer>::value>(Layer&) {}
+
+      randomizer& random_;
+    };
+
+    template <typename Neuron>
+    struct neuron_walker_base {
+      explicit neuron_walker_base(randomizer& rand) : random_(rand) {}
+
+      template <size_t J>
+      void walk_weight(Neuron& n) {
+        n.set_weight<J>(random_.rand());
+        walk_weight<J + 1>(n);
+      }
+      template <>
+      void walk_weight<Neuron::num_synapses>(Neuron&) {}
+
+      randomizer& random_;
+    };
+
+    template <typename Neuron, bool use_bias>
+    struct neuron_walker : neuron_walker_base<Neuron> {
+      explicit neuron_walker(randomizer& rand) : neuron_walker_base(rand) {}
+      void operator ()(Neuron& n) {
+        walk_weight<0>(n);
+        n.set_bias(random_.rand());
+      }
+    };
+
+    template <typename Neuron>
+    struct neuron_walker<Neuron, false> : neuron_walker_base<Neuron> {
+      explicit neuron_walker(randomizer& rand) : neuron_walker_base(rand) {}
+      void operator ()(Neuron& n) {
+        walk_weight<0>(n);
+      }
+    };
+
+    inline value_t rand() { return dis_(gen_); }
+
+    std::mt19937 gen_;
+    std::uniform_real_distribution<value_t> dis_;
+    Network& network_;
   };
 
-  template <typename Layer>
-  struct pass_neurons<0, Layer> {
-    void operator ()(Layer& layer, const apply_t& fun) {
-      using Neuron = std::tuple_element_t<0, Layer>;
-      apply_neuron<Neuron, Neuron::use_bias>()(std::get<0>(layer), fun);
-    }
-  };
-
-  template <typename Neuron, bool use_bias>
-  struct apply_neuron {
-    void operator ()(Neuron& n, const apply_t& fun) {
-      apply_weight(n, fun, std::make_index_sequence<Neuron::num_synapses>());
-      n.set_bias(fun());
-    }
-
-    template <size_t... J>
-    void apply_weight(Neuron& n, const apply_t& fun, std::index_sequence<J...>) {
-      n.set_weights(weight<J>(fun)...);
-    }
-
-    template <size_t J>
-    inline value_t weight(const apply_t& fun) {
-      return fun();
-    }
-  };
-
-  template <typename Neuron>
-  struct apply_neuron<Neuron, false> {
-    void operator ()(Neuron& n, const apply_t& fun) {
-      apply_weight(n, fun, std::make_index_sequence<Neuron::num_synapses>());
-    }
-
-    template <size_t... J>
-    void apply_weight(Neuron& n, const apply_t& fun, std::index_sequence<J...>) {
-      n.set_weights(weight<J>(fun)...);
-    }
-
-    template <size_t J>
-    inline value_t weight(const apply_t& fun) {
-      return fun();
-    }
-  };
 
   network_data_t forward_pass(const input_t& inputs) {
     network_data_t neuron_values;

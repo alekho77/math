@@ -85,6 +85,13 @@ public:
   }
   inline weights_t weights() const { return weights_; }
 
+  template <size_t I>
+  inline void set_weight(T val) {
+    std::get<I>(weights_) = val;
+  }
+  template <size_t I>
+  inline T weight() const { return std::get<I>(weights_); }
+
 private:
   template <size_t I>
   inline T combiner(const weights_t& inputs) const {
