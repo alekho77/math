@@ -42,13 +42,13 @@
     <ClCompile Include="neuron_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="nnetwrok_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="static_indexes_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bp_trainer_test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnetwork_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

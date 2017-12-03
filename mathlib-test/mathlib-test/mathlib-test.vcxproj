@@ -150,7 +150,7 @@
     <ClCompile Include="lsyseq_test.cpp" />
     <ClCompile Include="matrix_test.cpp" />
     <ClCompile Include="neuron_test.cpp" />
-    <ClCompile Include="nnetwrok_test.cpp" />
+    <ClCompile Include="nnetwork_test.cpp" />
     <ClCompile Include="nonlsyseq_test.cpp" />
     <ClCompile Include="static_indexes_test.cpp" />
   </ItemGroup>
