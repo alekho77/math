@@ -14,7 +14,7 @@ namespace mathlib {
 template <typename T, size_t N>
 struct input_layer {
   using value_t = T;
-  using input_tuple = typename make_tuple_type<T, N>::tuple_type;
+  using input_tuple = typename make_tuple_type<T, N>::type;
   static constexpr size_t input_size = N;
   static constexpr size_t num_layers = 0;
 
@@ -40,9 +40,10 @@ class nnetwork {
 
 public:
   using value_t = typename Input::value_t;
-  using output_t = typename make_tuple_type<value_t, output_size>::tuple_type;
+  using output_t = typename make_tuple_type<value_t, output_size>::type;
   using output_layer_t = Output;
   using input_layer_t = Input;
+  using map_t = Map;
 
   static constexpr size_t input_size = Input::input_size;  // Number of network input arguments.
   static constexpr size_t num_layers = 1 + Input::num_layers;  // Number layers that are contained in the network.
@@ -61,7 +62,6 @@ public:
   const typename network_layer<Input::num_layers, nnetwork>::type& layer<Input::num_layers>() const {
     return output_;
   }
-
 
   template <size_t I>
   typename network_layer<I, nnetwork>::type& layer() {
@@ -114,6 +114,12 @@ struct network_layer {
 
 template <size_t I, typename Network>
 using network_layer_t = typename network_layer<I, Network>::type;
+
+template <size_t I, typename Network>
+struct network_map {
+  static_assert(I < Network::num_layers, "Index out if bounds");
+
+};
 
 }  // namespace mathlib
 

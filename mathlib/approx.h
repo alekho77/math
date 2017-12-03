@@ -19,8 +19,8 @@ template<typename T, size_t N>
 class approx {
   static_assert(N > 0, "Must be at least one variable.");
 
-  using pack_t = typename make_tuple_type<T, N + 1>::tuple_type;
-  using coef_t = typename make_tuple_type<T, N>::tuple_type;
+  using pack_t = typename make_tuple_type<T, N + 1>::type;
+  using coef_t = typename make_tuple_type<T, N>::type;
 
 public:
   // Add new approach, the last arg is the const term (b).

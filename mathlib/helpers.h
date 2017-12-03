@@ -88,7 +88,7 @@ class make_tuple_type {
   template <size_t... I>
   static auto helper(std::index_sequence<I...>) -> decltype(std::make_tuple(TypeForIdx<I>::Type()...)) {}
 public:
-  using tuple_type = decltype(helper(std::make_index_sequence<N>()));
+  using type = decltype(helper(std::make_index_sequence<N>()));
 };
 
 }  // namespace mathlib

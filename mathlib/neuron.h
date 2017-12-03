@@ -49,7 +49,7 @@ public:
   static constexpr bool use_bias = std::is_same<BIAS<T>, B>::value;
   static constexpr bool use_slope = std::is_base_of<SLOPE<T>, F>::value;
   static constexpr size_t num_synapses = N;
-  using weights_t = typename make_tuple_type<T, N>::tuple_type;
+  using weights_t = typename make_tuple_type<T, N>::type;
 
   neuron() {
     initialize([](size_t) { return T(1); });
