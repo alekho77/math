@@ -45,7 +45,7 @@ TEST_F(bp_trainer_test_fixture, forward_pass) {
   std::get<0>(layer2).set_weights(1.5, -2.3);
 
   const auto trainer = make_bp_trainer(network);
-  const auto net_state = trainer.forward(std::make_tuple(1, 0));
+  const auto net_state = trainer.states(std::make_tuple(1, 0));
   const auto expected_state = std::make_tuple(std::make_tuple(0.2212784678984441, 0.3713602278765078), std::make_tuple(-0.2553291700256212));
   static_assert(std::is_same<decltype(expected_state), decltype(net_state)>::value, "Unexpected result type.");
   EXPECT_DOUBLE_EQ(std::get<0>(std::get<0>(expected_state)), std::get<0>(std::get<0>(net_state)));

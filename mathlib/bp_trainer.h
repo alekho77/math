@@ -33,8 +33,13 @@ public:
     (randomizer(network_))(range, seed);
   }
 
-  network_data_t forward(const input_t& inputs) const {
+  network_data_t states(const input_t& inputs) const {
     return (forward_pass(network_))(inputs);
+  }
+
+  network_data_t deltas(const network_data_t& states, const typename Network::output_t& desired_outputs) {
+    
+    return network_data_t();
   }
 
   value_t operator ()(const input_t& inputs, const typename Network::output_t& expected_outputs) {

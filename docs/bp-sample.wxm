@@ -6,7 +6,7 @@ kill(all)$
 
 
 /* [wxMaxima: input   start ] */
-s(x,a):=1/(1+exp(-a*x));
+s(x,a):=2/(1+exp(-a*x))-1;
 /* [wxMaxima: input   end   ] */
 
 
@@ -51,17 +51,17 @@ O: s(sum(([H1,H2]*WO)[i],i,1,2),1);
 
 
 /* [wxMaxima: input   start ] */
-ds(y):=(1-y)*y;
+ds(y,a):=a/2*(1-y)*(1+y);
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-dO: (1-O)*ds(O);
+dO: (1-O)*ds(O,1);
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-dH: dO*WO*[ds(H1),ds(H2)];
+dH: dO*WO*[ds(H1,1),ds(H2,1)];
 /* [wxMaxima: input   end   ] */
 
 

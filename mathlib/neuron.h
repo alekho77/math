@@ -27,6 +27,9 @@ struct SIGMOID : S {
   T operator () (T v) const {
     return T(2) / (T(1) + std::exp(-S::slope_ * v)) - T(1);
   }
+  T deriv(T y) const {
+    return S::slope / 2 * (1 + y) * (1 - y);
+  }
 };
 
 template <typename T>
@@ -91,6 +94,8 @@ public:
   }
   template <size_t I>
   inline T weight() const { return std::get<I>(weights_); }
+
+  inline T deriv(T y) const { return actfun_.deriv(y); }
 
 private:
   template <size_t I>
