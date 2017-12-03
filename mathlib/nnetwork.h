@@ -103,13 +103,13 @@ struct network_layer_downcount {
 
 template <typename Network>
 struct network_layer_downcount<1, Network> {
-  using type = typename Network::output_layer_t;
+  using type = typename Network;
 };
 
 template <size_t I, typename Network>
 struct network_layer {
   static_assert(I < Network::num_layers, "Index out if bounds");
-  using type = typename network_layer_downcount<Network::num_layers - I, Network>::type;
+  using type = typename network_layer_downcount<Network::num_layers - I, Network>::type::output_layer_t;
 };
 
 template <size_t I, typename Network>
@@ -118,8 +118,11 @@ using network_layer_t = typename network_layer<I, Network>::type;
 template <size_t I, typename Network>
 struct network_map {
   static_assert(I < Network::num_layers, "Index out if bounds");
-
+  using type = typename network_layer_downcount<Network::num_layers - I, Network>::type::map_t;
 };
+
+template <size_t I, typename Network>
+using network_map_t = typename network_map<I, Network>::type;
 
 }  // namespace mathlib
 

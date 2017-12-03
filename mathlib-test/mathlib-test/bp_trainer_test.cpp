@@ -37,10 +37,20 @@ TEST_F(bp_trainer_test_fixture, randomizer) {
   EXPECT_EQ(values[6], std::get<0>(layer2).bias());
 }
 
-TEST_F(bp_trainer_test_fixture, iteration) {
-  //auto trainer = make_bp_trainer(network);
-  //trainer.randomize(10, 1977);
-  ///*auto e1 =*/ trainer(std::make_tuple(0, 0), std::make_tuple(0));
+TEST_F(bp_trainer_test_fixture, forward_pass) {
+  auto& layer1 = network.layer<0>();
+  std::get<0>(layer1).set_weights(0.45, -0.12);
+  std::get<1>(layer1).set_weights(0.78, 0.13);
+  auto& layer2 = network.layer<1>();
+  std::get<0>(layer2).set_weights(1.5, -2.3);
+
+  const auto trainer = make_bp_trainer(network);
+  const auto net_state = trainer.forward(std::make_tuple(1, 0));
+  const auto expected_state = std::make_tuple(std::make_tuple(0.2212784678984441, 0.3713602278765078), std::make_tuple(-0.2553291700256212));
+  static_assert(std::is_same<decltype(expected_state), decltype(net_state)>::value, "Unexpected result type.");
+  EXPECT_DOUBLE_EQ(std::get<0>(std::get<0>(expected_state)), std::get<0>(std::get<0>(net_state)));
+  EXPECT_DOUBLE_EQ(std::get<1>(std::get<0>(expected_state)), std::get<1>(std::get<0>(net_state)));
+  EXPECT_DOUBLE_EQ(std::get<0>(std::get<1>(expected_state)), std::get<0>(std::get<1>(net_state)));
 }
 
 }  // namespace mathlib
