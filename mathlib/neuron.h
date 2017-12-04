@@ -28,7 +28,7 @@ struct SIGMOID : S {
     return T(2) / (T(1) + std::exp(-S::slope_ * v)) - T(1);
   }
   T deriv(T y) const {
-    return S::slope / 2 * (1 + y) * (1 - y);
+    return S::slope_ / 2 * (1 + y) * (1 - y);
   }
 };
 

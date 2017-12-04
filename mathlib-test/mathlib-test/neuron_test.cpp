@@ -27,4 +27,12 @@ TEST(neuron_test, construct) {
   }
 }
 
+TEST(neuron_test, deriv) {
+  SIGMOID<double, SLOPE<double>> sig;
+  sig.slope_ = 3.14;
+  const double val = sig(2.5);
+  auto deriv = [](double x) { return 2 * 3.14 * std::exp(-3.14 * x) / std::pow(1 + std::exp(-3.14 * x), 2.0); };
+  EXPECT_NEAR(deriv(2.5), sig.deriv(val), 1e-14);
+}
+
 }  // namespace mathlib
