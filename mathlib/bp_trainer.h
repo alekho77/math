@@ -37,9 +37,8 @@ public:
     return (forward_pass(network_))(inputs);
   }
 
-  network_data_t deltas(const network_data_t& states, const typename Network::output_t& desired_outputs) {
-    
-    return network_data_t();
+  network_data_t deltas(const network_data_t& net_state, const typename Network::output_t& desired_outputs) const {
+    return (back_pass_deltas(network_, net_state))(desired_outputs);
   }
 
   value_t operator ()(const input_t& inputs, const typename Network::output_t& expected_outputs) {
@@ -187,6 +186,97 @@ private:
 
     const Network& network_;
     network_data_t data_;
+  };
+
+  class back_pass_deltas {
+  public:
+    explicit back_pass_deltas(const Network& net, const network_data_t& net_state) : network_(net), states_(net_state), deltas_() {}
+
+    inline network_data_t operator ()(const typename Network::output_t& desired_outputs) {
+      std::get<Network::num_layers - 1>(deltas_) = output_errors(desired_outputs, std::get<Network::num_layers - 1>(states_), std::make_index_sequence<std::tuple_size<typename Network::output_t>::value>());
+      walk_behind_layer<Network::num_layers>();
+      return deltas_;
+    }
+
+  private:
+    template <size_t... I>
+    typename Network::output_t output_errors(const typename Network::output_t& desired_outputs, const typename Network::output_t& actual_outputs, std::index_sequence<I...>) {
+      return std::forward_as_tuple((std::get<I>(desired_outputs) - std::get<I>(actual_outputs))...);
+    }
+
+    template <size_t L>
+    inline void walk_behind_layer() {
+      // Hidden layer
+      constexpr size_t K = L - 1;
+      using Deltas = std::tuple_element_t<L, network_data_t>;  // Deltas of layer behind this one.
+      using States = std::tuple_element_t<K, network_data_t>;  // Neuron values of this layer.
+      using Errors = States;
+      //using Layer = network_layer_t<K, Network>;  // This layer in order to get derivatives.
+      using BLayer = network_layer_t<L, Network>;  // Layer behind this one in order to get connections weights.
+      using Map = network_map_t<L, Network>;  // Map of connections between this layer and behind one.
+      std::get<K>(deltas_) = blayer_walker<Errors, Deltas, Map, BLayer>(network_.layer<L>())(std::get<L>(deltas_));
+      walk_behind_layer<K>();
+    }
+
+    template <>
+    inline void walk_behind_layer<Network::num_layers>() {
+      // Output layer
+      constexpr size_t K = Network::num_layers - 1;
+      using Layer = network_layer_t<K, Network>;
+      std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states_), std::make_index_sequence<std::tuple_size<Layer>::value>());
+      walk_behind_layer<K>();
+    }
+
+    template <>
+    inline void walk_behind_layer<0>() {}
+
+    template <typename States, typename Layer, size_t... I>
+    States layer_deltas(const States& errs, const Layer& layer, const States& states, std::index_sequence<I...>) {
+      return std::forward_as_tuple((std::get<I>(errs) * std::get<I>(layer).deriv(std::get<I>(states)))...);
+    }
+
+    template <typename Errors, typename Deltas, typename Map, typename BLayer>
+    struct blayer_walker {
+      static constexpr size_t blayer_size = std::tuple_size<BLayer>::value;
+      static_assert(blayer_size == pack_size<Map>(), "Size of layer behind this and size of connections map shall be the same.");
+      explicit blayer_walker(const BLayer& blayer) : blayer_(blayer) {}
+      inline Errors operator ()(const Deltas& deltas) {
+        Errors sum_err{};
+        walk_behind_neuron<0>(deltas, sum_err);
+        return sum_err;
+      }
+      template <size_t I>
+      void walk_behind_neuron(const Deltas& deltas, Errors& errs) {
+        using Neuron = std::tuple_element_t<I, BLayer>;
+        using Indexes = typename get_type<I, Map>::type;
+        (bneuron_walker<Neuron, Indexes, Errors>(std::get<I>(blayer_), errs))(std::get<I>(deltas));
+        walk_behind_neuron<I + 1>(deltas, errs);
+      }
+      template <>
+      void walk_behind_neuron<blayer_size>(const Deltas&, Errors&) {}
+      const BLayer& blayer_;
+    };
+
+    template <typename Neuron, typename Indexes, typename Errors>
+    struct bneuron_walker {
+      explicit bneuron_walker(const Neuron& n, Errors& e) : neuron_(n), errs_(e) {}
+      void operator ()(const value_t delta) {
+        add_err_by_synap<0>(delta);
+      }
+      template <size_t J>
+      void add_err_by_synap(const value_t delta) {
+        std::get<get_index<J, Indexes>()>(errs_) += neuron_.weight<J>() * delta;
+        add_err_by_synap<J + 1>(delta);
+      }
+      template <>
+      void add_err_by_synap<Neuron::num_synapses>(const value_t) {}
+      const Neuron& neuron_;
+      Errors& errs_;
+    };
+
+    const Network& network_;
+    const network_data_t& states_;
+    network_data_t deltas_;
   };
 
   template <size_t... I>
