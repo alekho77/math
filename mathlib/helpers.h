@@ -82,11 +82,9 @@ T powi(const T val, int p) {
 
 template <typename T, size_t N>
 class make_tuple_type {
-  template <size_t I>
-  struct TypeForIdx { typedef T Type; };
-
+  template <size_t I> using next_type = T;
   template <size_t... I>
-  static auto helper(std::index_sequence<I...>) -> decltype(std::make_tuple(TypeForIdx<I>::Type()...)) {}
+  static auto helper(std::index_sequence<I...>) -> decltype(std::make_tuple(next_type<I>()...)) {}
 public:
   using type = decltype(helper(std::make_index_sequence<N>()));
 };

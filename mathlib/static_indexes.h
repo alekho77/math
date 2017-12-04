@@ -35,6 +35,18 @@ struct type_pack<P, Rest...> {
   using next = type_pack<Rest...>;
 };
 
+template <typename P, size_t N>
+class make_type_pack {
+  static_assert(N > 0, "Number of repeats shall be greater zero.");
+  
+  template <size_t I> using next_type = P;
+  template <size_t... I>
+  static auto helper(std::index_sequence<I...>) -> decltype(type_pack<next_type<I>...>()) {}
+
+public:
+  using type = decltype(helper(std::make_index_sequence<N>()));
+};
+
 template <size_t I, typename Pack>
 struct get_type {
   static_assert(!std::is_same<Pack, type_pack<>>::value, "Index out of bounds.");
