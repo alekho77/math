@@ -27,7 +27,7 @@ class bp_trainer {
   using network_data_t = decltype(helper_network_data(std::make_index_sequence<Network::num_layers>()));
 
 public:
-  explicit bp_trainer(Network& net) : network_(net), fp_(net), bp_deltas_(net) {}
+  explicit bp_trainer(Network& net) : network_(net), fp_(net), bp_deltas_(net), p_weights_(net){}
 
   void randomize(value_t range = 1, unsigned seed = std::random_device()()) {
     (randomizer(network_))(range, seed);
@@ -36,13 +36,14 @@ public:
   std::tuple<value_t, value_t> operator ()(const input_t& inputs, const typename Network::output_t& desired_outputs) {
     // Forward pass to determine values of all neurons.
     fp_(inputs);
-    auto actual_outputs = std::get<Network::num_layers - 1>(fp_.get_result());
+    const auto actual_outputs = std::get<Network::num_layers - 1>(fp_.get_result());
     // First back pass to get deltas
     bp_deltas_(desired_outputs, fp_.get_result());
-    
-    //pass_layers<Network::num_layers - 1>([&expected_outputs, &actual_outputs]() { return 0; });
-    //auto fixed_outputs = call_network(inputs, std::make_index_sequence<Network::input_size>());
-    return std::forward_as_tuple(error(desired_outputs, actual_outputs, std::make_index_sequence<output_size>()), 0);
+    // Second pass to modify the weights
+    p_weights_(inputs, fp_.get_result(), bp_deltas_.get_result());
+    const auto fixed_outputs = call_network(inputs, std::make_index_sequence<Network::input_size>());
+    return std::forward_as_tuple(error(desired_outputs, actual_outputs, std::make_index_sequence<output_size>()),
+                                 error(desired_outputs, fixed_outputs, std::make_index_sequence<output_size>()));
   }
 
   const network_data_t& states() const { return fp_.get_result(); }
@@ -280,6 +281,94 @@ private:
     network_data_t deltas_;
   };
 
+  class pass_weights {
+  public:
+    explicit pass_weights(Network& net) : network_(net) {}
+    void operator ()(const input_t& inputs, const network_data_t& states, const network_data_t& deltas) {
+      walk_layer<0>(inputs, states, deltas);
+    }
+
+  private:
+    template <size_t K>
+    inline void walk_layer(const input_t& inputs, const network_data_t& states, const network_data_t& deltas) {
+      using Layer = network_layer_t<K, Network>;
+      using Map = network_map_t<K, Network>;
+      using Deltas = std::tuple_element_t<K, network_data_t>;  // Deltas of this layer.
+      using Inputs = std::tuple_element_t<K - 1, network_data_t>;  // Inputs for this layer.
+      layer_walker<Layer, Map, Deltas, Inputs>()(std::get<K - 1>(states) ,std::get<K>(deltas), network_.layer<K>());
+      walk_layer<K + 1>(inputs, states, deltas);
+    }
+    template <>
+    inline void walk_layer<0>(const input_t& inputs, const network_data_t& states, const network_data_t& deltas) {
+      using Layer = network_layer_t<0, Network>;
+      using Map = network_map_t<0, Network>;
+      using Deltas = std::tuple_element_t<0, network_data_t>;  // Deltas of this layer.
+      using Inputs = input_t;  // Inputs for this layer.
+      layer_walker<Layer, Map, Deltas, Inputs>()(inputs, std::get<0>(deltas), network_.layer<0>());
+      walk_layer<1>(inputs, states, deltas);
+    }
+    template <>
+    inline void walk_layer<Network::num_layers>(const input_t&, const network_data_t&, const network_data_t&) {}
+
+    template <typename Layer, typename Map, typename Deltas, typename Inputs>
+    struct layer_walker {
+      explicit layer_walker() {}
+
+      inline void operator ()(const Inputs& inputs, const Deltas& deltas, Layer& layer) {
+        walk_neuron<0>(inputs, deltas, layer);
+      }
+
+      template <size_t I>
+      inline void walk_neuron(const Inputs& inputs, const Deltas& deltas, Layer& layer) {
+        using Neuron = std::tuple_element_t<I, Layer>;
+        using Indexes = typename get_type<I, Map>::type;
+        neuron_walker<Neuron, Indexes, Inputs, Neuron::use_bias>()(inputs, std::get<I>(deltas), std::get<I>(layer));
+        walk_neuron<I + 1>(inputs, deltas, layer);
+      }
+      template <>
+      inline void walk_neuron<std::tuple_size<Layer>::value>(const Inputs&, const Deltas&, Layer&) {}
+    };
+
+    template <typename Neuron, typename Indexes, typename Inputs>
+    struct neuron_walker_base {
+      explicit neuron_walker_base() {}
+
+      template <size_t J>
+      inline void walk_weight(const Inputs& inputs, const value_t delta, Neuron& n) {
+        const value_t dw = /*eta * */delta * std::get<get_index<J, Indexes>()>(inputs); // + alpha * dw_prev
+        n.set_weight<J>(n.weight<J>() + dw);
+        walk_weight<J + 1>(inputs, delta, n);
+      }
+      template <>
+      inline void walk_weight<Neuron::num_synapses>(const Inputs&, const value_t, Neuron&) {}
+    };
+
+    template <typename Neuron, typename Indexes, typename Inputs, bool use_bias>
+    struct neuron_walker : neuron_walker_base<Neuron, Indexes, Inputs> {
+      explicit neuron_walker() : neuron_walker_base<Neuron, Indexes, Inputs>() {}
+      inline void operator ()(const Inputs& inputs, const value_t delta, Neuron& n) {
+        walk_weight<0>(inputs, delta, n);
+        const value_t db = /*eta * */delta; // + alpha * db_prev
+        n.set_bias(n.bias() + db);
+      }
+    };
+
+    template <typename Neuron, typename Indexes, typename Inputs>
+    struct neuron_walker<Neuron, Indexes, Inputs, false> : neuron_walker_base<Neuron, Indexes, Inputs> {
+      explicit neuron_walker() : neuron_walker_base<Neuron, Indexes, Inputs>() {}
+      inline void operator ()(const Inputs& inputs, const value_t delta, Neuron& n) {
+        walk_weight<0>(inputs, delta, n);
+      }
+    };
+
+    Network& network_;
+  };
+
+  template <size_t... I>
+  typename Network::output_t call_network(const input_t& inputs, std::index_sequence<I...>) {
+    return network_(std::get<I>(inputs)...);
+  }
+
   template <size_t... I>
   inline value_t error(const typename Network::output_t& expected, const typename Network::output_t& actual, std::index_sequence<I...>) {
     return sum_error<0>({error_function(std::get<I>(expected), std::get<I>(actual))...}) / output_size;
@@ -298,8 +387,9 @@ private:
   }
 
   Network& network_;
-  forward_pass fp_;  // Stores values for all neurons after training iteration.
-  back_pass_deltas bp_deltas_;  // Stores deltas for all neurons after training iteration.
+  forward_pass fp_;  // Calculates and stores values for all neurons after training iteration.
+  back_pass_deltas bp_deltas_;  // Calculates and stores deltas for all neurons after training iteration.
+  pass_weights p_weights_;  // Calculates and modifies weights of all neurons during training iteration;
 };
 
 template <typename Network>

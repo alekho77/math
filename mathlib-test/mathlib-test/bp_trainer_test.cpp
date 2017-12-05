@@ -71,6 +71,7 @@ TEST_F(bp_trainer_test_fixture, iteration) {
   auto trainer = make_bp_trainer(network);
   auto errs = trainer(std::make_tuple(1, 0), std::make_tuple(1));
   EXPECT_DOUBLE_EQ(1.575851325117215, std::get<0>(errs));
+  EXPECT_DOUBLE_EQ(0.8380606860323391, std::get<1>(errs));
 }
 
 }  // namespace mathlib
