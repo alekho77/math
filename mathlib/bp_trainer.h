@@ -287,8 +287,28 @@ private:
   };
 
   class pass_weights {
+    template <typename Neuron, bool use_bias>
+    struct neuron_params {
+      typename Neuron::weights_t adj_weights;
+      value_t adj_bias;
+    };
+    template <typename Neuron>
+    struct neuron_params<Neuron, false> {
+      typename Neuron::weights_t adj_weights;
+    };
+
+    template <typename Layer, size_t... I>
+    static auto helper_layer_params(std::index_sequence<I...>) -> decltype(
+      std::make_tuple(neuron_params<std::tuple_element_t<I, Layer>, std::tuple_element_t<I, Layer>::use_bias>()...)) {}
+
+    template <size_t... I>
+    static auto helper_network_params(std::index_sequence<I...>) -> decltype(
+      std::make_tuple(helper_layer_params<network_layer_t<I, Network>>(std::make_index_sequence<std::tuple_size<network_layer_t<I, Network>>::value>())...)) {}
+
+    using network_params_t = decltype(helper_network_params(std::make_index_sequence<Network::num_layers>()));
+
   public:
-    explicit pass_weights(Network& net) : network_(net) {}
+    explicit pass_weights(Network& net) : network_(net), params_() {}
 
     void operator ()(const input_t& inputs, const network_data_t& states, const network_data_t& deltas) {
       walk_layer<0>(inputs, states, deltas);
@@ -307,7 +327,8 @@ private:
       using Map = network_map_t<K, Network>;
       using Deltas = std::tuple_element_t<K, network_data_t>;  // Deltas of this layer.
       using Inputs = std::tuple_element_t<K - 1, network_data_t>;  // Inputs for this layer.
-      layer_walker<Layer, Map, Deltas, Inputs>(std::get<K - 1>(states), network_.layer<K>(), *this)(std::get<K>(deltas));
+      using Params = std::tuple_element_t<K, network_params_t>;
+      layer_walker<Layer, Map, Deltas, Inputs, Params>(std::get<K - 1>(states), std::get<K>(params_), network_.layer<K>(), *this)(std::get<K>(deltas));
       walk_layer<K + 1>(inputs, states, deltas);
     }
     template <>
@@ -316,15 +337,17 @@ private:
       using Map = network_map_t<0, Network>;
       using Deltas = std::tuple_element_t<0, network_data_t>;  // Deltas of this layer.
       using Inputs = input_t;  // Inputs for this layer.
-      layer_walker<Layer, Map, Deltas, Inputs>(inputs, network_.layer<0>(), *this)(std::get<0>(deltas));
+      using Params = std::tuple_element_t<0, network_params_t>;
+      layer_walker<Layer, Map, Deltas, Inputs, Params>(inputs, std::get<0>(params_), network_.layer<0>(), *this)(std::get<0>(deltas));
       walk_layer<1>(inputs, states, deltas);
     }
     template <>
     inline void walk_layer<Network::num_layers>(const input_t&, const network_data_t&, const network_data_t&) {}
 
-    template <typename Layer, typename Map, typename Deltas, typename Inputs>
+    template <typename Layer, typename Map, typename Deltas, typename Inputs, typename Params>
     struct layer_walker {
-      explicit layer_walker(const Inputs& inputs, Layer& layer, const pass_weights& pw) : layer_(layer), inputs_(inputs), pw_(pw) {}
+      explicit layer_walker(const Inputs& inputs, Params& params, Layer& layer, const pass_weights& pw)
+        : layer_(layer), inputs_(inputs), pw_(pw), params_(params) {}
 
       inline void operator ()(const Deltas& deltas) {
         walk_neuron<0>(deltas);
@@ -334,7 +357,8 @@ private:
       inline void walk_neuron(const Deltas& deltas) {
         using Neuron = std::tuple_element_t<I, Layer>;
         using Indexes = typename get_type<I, Map>::type;
-        neuron_walker<Neuron, Indexes, Inputs, Neuron::use_bias>(inputs_, std::get<I>(layer_), pw_)(std::get<I>(deltas));
+        using NeuronParams = std::tuple_element_t<I, Params>;
+        neuron_walker<Neuron, Indexes, Inputs, NeuronParams, Neuron::use_bias>(inputs_, std::get<I>(params_), std::get<I>(layer_), pw_)(std::get<I>(deltas));
         walk_neuron<I + 1>(deltas);
       }
       template <>
@@ -343,16 +367,18 @@ private:
       const Inputs& inputs_;
       Layer& layer_;
       const pass_weights& pw_;
+      Params& params_;
     };
 
-    template <typename Neuron, typename Indexes, typename Inputs>
+    template <typename Neuron, typename Indexes, typename Inputs, typename Params>
     struct neuron_walker_base {
-      explicit neuron_walker_base(const Inputs& inputs, Neuron& n, const pass_weights& pw) : neuron_(n), inputs_(inputs), pw_(pw) {}
+      explicit neuron_walker_base(const Inputs& inputs, Params& params, Neuron& n, const pass_weights& pw)
+        : neuron_(n), inputs_(inputs), pw_(pw), params_(params) {}
 
       template <size_t J>
       inline void walk_weight(const value_t delta) {
-        const value_t dw = pw_.adjustment(delta, std::get<get_index<J, Indexes>()>(inputs_));
-        neuron_.set_weight<J>(neuron_.weight<J>() + dw);
+        std::get<J>(params_.adj_weights) = pw_.adjustment(delta, std::get<get_index<J, Indexes>()>(inputs_), std::get<J>(params_.adj_weights));
+        neuron_.set_weight<J>(neuron_.weight<J>() + std::get<J>(params_.adj_weights));
         walk_weight<J + 1>(delta);
       }
       template <>
@@ -361,33 +387,37 @@ private:
       const Inputs& inputs_;
       Neuron& neuron_;
       const pass_weights& pw_;
+      Params& params_;
     };
 
-    template <typename Neuron, typename Indexes, typename Inputs, bool use_bias>
-    struct neuron_walker : neuron_walker_base<Neuron, Indexes, Inputs> {
-      explicit neuron_walker(const Inputs& inputs, Neuron& n, const pass_weights& pw) : neuron_walker_base<Neuron, Indexes, Inputs>(inputs, n, pw) {}
+    template <typename Neuron, typename Indexes, typename Inputs, typename Params, bool use_bias>
+    struct neuron_walker : neuron_walker_base<Neuron, Indexes, Inputs, Params> {
+      explicit neuron_walker(const Inputs& inputs, Params& params, Neuron& n, const pass_weights& pw)
+        : neuron_walker_base<Neuron, Indexes, Inputs, Params>(inputs, params, n, pw) {}
       inline void operator ()(const value_t delta) {
         walk_weight<0>(delta);
-        const value_t db = pw_.adjustment(delta, 1);
-        neuron_.set_bias(neuron_.bias() + db);
+        params_.adj_bias = pw_.adjustment(delta, 1, params_.adj_bias);
+        neuron_.set_bias(neuron_.bias() + params_.adj_bias);
       }
     };
 
-    template <typename Neuron, typename Indexes, typename Inputs>
-    struct neuron_walker<Neuron, Indexes, Inputs, false> : neuron_walker_base<Neuron, Indexes, Inputs> {
-      explicit neuron_walker(const Inputs& inputs, Neuron& n, const pass_weights& pw) : neuron_walker_base<Neuron, Indexes, Inputs>(inputs, n, pw) {}
+    template <typename Neuron, typename Indexes, typename Inputs, typename Params>
+    struct neuron_walker<Neuron, Indexes, Inputs, Params, false> : neuron_walker_base<Neuron, Indexes, Inputs, Params> {
+      explicit neuron_walker(const Inputs& inputs, Params& params, Neuron& n, const pass_weights& pw)
+        : neuron_walker_base<Neuron, Indexes, Inputs, Params>(inputs, params, n, pw) {}
       inline void operator ()(const value_t delta) {
         walk_weight<0>(delta);
       }
     };
 
-    inline value_t adjustment(const value_t delta, const value_t input) const {
-      return eta_ * delta * input; // + alpha * prev
+    inline value_t adjustment(const value_t delta, const value_t input, const value_t prev) const {
+      return eta_ * delta * input + alpha_ * prev;
     }
 
     Network& network_;
     value_t eta_ = 1;  // Learning rate
     value_t alpha_ = 0;  // Moment of inertia for learning rate
+    network_params_t params_;
   };
 
   template <size_t... I>
