@@ -27,29 +27,27 @@ class bp_trainer {
   using network_data_t = decltype(helper_network_data(std::make_index_sequence<Network::num_layers>()));
 
 public:
-  explicit bp_trainer(Network& net) : network_(net) {}
+  explicit bp_trainer(Network& net) : network_(net), fp_(net), bp_deltas_(net) {}
 
   void randomize(value_t range = 1, unsigned seed = std::random_device()()) {
     (randomizer(network_))(range, seed);
   }
 
-  network_data_t states(const input_t& inputs) const {
-    return (forward_pass(network_))(inputs);
-  }
-
-  network_data_t deltas(const network_data_t& net_state, const typename Network::output_t& desired_outputs) const {
-    return (back_pass_deltas(network_, net_state))(desired_outputs);
-  }
-
-  value_t operator ()(const input_t& inputs, const typename Network::output_t& expected_outputs) {
+  std::tuple<value_t, value_t> operator ()(const input_t& inputs, const typename Network::output_t& desired_outputs) {
     // Forward pass to determine values of all neurons.
-    //network_data_t neurons_values = forward_pass(inputs);
+    fp_(inputs);
+    auto actual_outputs = std::get<Network::num_layers - 1>(fp_.get_result());
+    // First back pass to get deltas
+    bp_deltas_(desired_outputs, fp_.get_result());
     
-    //auto actual_outputs = call_network(inputs, std::make_index_sequence<Network::input_size>());
     //pass_layers<Network::num_layers - 1>([&expected_outputs, &actual_outputs]() { return 0; });
     //auto fixed_outputs = call_network(inputs, std::make_index_sequence<Network::input_size>());
-    return error(expected_outputs, fixed_outputs, std::make_index_sequence<output_size>());
+    return std::forward_as_tuple(error(desired_outputs, actual_outputs, std::make_index_sequence<output_size>()), 0);
   }
+
+  const network_data_t& states() const { return fp_.get_result(); }
+
+  const network_data_t& deltas() const { return bp_deltas_.get_result(); }
 
 private:
   class randomizer {
@@ -135,10 +133,11 @@ private:
   public:
     explicit forward_pass(const Network& net) : network_(net), data_() {}
 
-    inline network_data_t operator ()(const input_t& inputs) {
+    inline void operator ()(const input_t& inputs) {
       walk_layer<0>(inputs);
-      return data_;
     }
+
+    const network_data_t& get_result() const { return data_; }
 
   private:
     template <size_t K>
@@ -190,13 +189,15 @@ private:
 
   class back_pass_deltas {
   public:
-    explicit back_pass_deltas(const Network& net, const network_data_t& net_state) : network_(net), states_(net_state), deltas_() {}
+    explicit back_pass_deltas(const Network& net) : network_(net), deltas_() {}
 
-    inline network_data_t operator ()(const typename Network::output_t& desired_outputs) {
-      std::get<Network::num_layers - 1>(deltas_) = output_errors(desired_outputs, std::get<Network::num_layers - 1>(states_), std::make_index_sequence<std::tuple_size<typename Network::output_t>::value>());
-      walk_behind_layer<Network::num_layers>();
+    inline network_data_t operator ()(const typename Network::output_t& desired_outputs, const network_data_t& states) {
+      std::get<Network::num_layers - 1>(deltas_) = output_errors(desired_outputs, std::get<Network::num_layers - 1>(states), std::make_index_sequence<std::tuple_size<typename Network::output_t>::value>());
+      walk_behind_layer<Network::num_layers>(states);
       return deltas_;
     }
+
+    const network_data_t& get_result() const { return deltas_; }
 
   private:
     template <size_t... I>
@@ -205,7 +206,7 @@ private:
     }
 
     template <size_t L>
-    inline void walk_behind_layer() {
+    inline void walk_behind_layer(const network_data_t& states) {
       // Hidden layer
       constexpr size_t K = L - 1;
       using Deltas = std::tuple_element_t<L, network_data_t>;  // Deltas of layer behind this one.
@@ -215,21 +216,21 @@ private:
       using BLayer = network_layer_t<L, Network>;  // Layer behind this one in order to get connections weights.
       using Map = network_map_t<L, Network>;  // Map of connections between this layer and behind one.
       std::get<K>(deltas_) = blayer_walker<Errors, Deltas, Map, BLayer>(network_.layer<L>())(std::get<L>(deltas_));
-      std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states_), std::make_index_sequence<std::tuple_size<Layer>::value>());
-      walk_behind_layer<K>();
+      std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states), std::make_index_sequence<std::tuple_size<Layer>::value>());
+      walk_behind_layer<K>(states);
     }
 
     template <>
-    inline void walk_behind_layer<Network::num_layers>() {
+    inline void walk_behind_layer<Network::num_layers>(const network_data_t& states) {
       // Output layer
       constexpr size_t K = Network::num_layers - 1;
       using Layer = network_layer_t<K, Network>;
-      std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states_), std::make_index_sequence<std::tuple_size<Layer>::value>());
-      walk_behind_layer<K>();
+      std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states), std::make_index_sequence<std::tuple_size<Layer>::value>());
+      walk_behind_layer<K>(states);
     }
 
     template <>
-    inline void walk_behind_layer<0>() {}
+    inline void walk_behind_layer<0>(const network_data_t&) {}
 
     template <typename States, typename Layer, size_t... I>
     States layer_deltas(const States& errs, const Layer& layer, const States& states, std::index_sequence<I...>) {
@@ -276,30 +277,29 @@ private:
     };
 
     const Network& network_;
-    const network_data_t& states_;
     network_data_t deltas_;
   };
 
   template <size_t... I>
   inline value_t error(const typename Network::output_t& expected, const typename Network::output_t& actual, std::index_sequence<I...>) {
-    return std::sqrt(sum_error<output_size - 1>({error_function(std::get<I>(expected), std::get<I>(actual))...}) / output_size);
+    return sum_error<0>({error_function(std::get<I>(expected), std::get<I>(actual))...}) / output_size;
   }
 
   template <size_t I>
   inline value_t sum_error(const typename Network::output_t& errs) {
-    return std::get<I>(errs) + sum_error<I - 1>(errs);
+    return std::get<I>(errs) + sum_error<I + 1>(errs);
   }
 
   template <>
-  inline value_t sum_error<0>(const typename Network::output_t& errs) {
-    return std::get<0>(errs);
-  }
+  inline value_t sum_error<output_size>(const typename Network::output_t&) { return 0; }
 
   inline value_t error_function(value_t expected, value_t actual) {
     return powi(expected - actual, 2);
   }
 
   Network& network_;
+  forward_pass fp_;  // Stores values for all neurons after training iteration.
+  back_pass_deltas bp_deltas_;  // Stores deltas for all neurons after training iteration.
 };
 
 template <typename Network>

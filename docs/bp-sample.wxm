@@ -56,6 +56,11 @@ O: s(sum(([H1,H2]*WO)[i],i,1,2));
 
 
 /* [wxMaxima: input   start ] */
+(1 - O)^2;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
 ds(y):=1/2*(1-y)*(1+y);
 /* [wxMaxima: input   end   ] */
 
@@ -137,6 +142,11 @@ H2: s(sum((I*WH2)[i],i,1,2));
 
 /* [wxMaxima: input   start ] */
 O: s(sum(([H1,H2]*WO)[i],i,1,2));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+(1 - O)^2;
 /* [wxMaxima: input   end   ] */
 
 
