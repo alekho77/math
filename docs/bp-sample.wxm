@@ -6,12 +6,17 @@ kill(all)$
 
 
 /* [wxMaxima: input   start ] */
-s(x,a):=2/(1+exp(-a*x))-1;
+s(x):=2/(1+exp(-x))-1;
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-wxplot2d([s(x,1),s(x,0.5),s(x,2)],[x,-10,10]);
+s(10), numer;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(s(x),[x,-10,10]);
 /* [wxMaxima: input   end   ] */
 
 
@@ -36,22 +41,22 @@ WO:[1.5,-2.3];
 
 
 /* [wxMaxima: input   start ] */
-H1: s(sum((I*WH1)[i],i,1,2),1);
+H1: s(sum((I*WH1)[i],i,1,2));
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-H2: s(sum((I*WH2)[i],i,1,2),1);
+H2: s(sum((I*WH2)[i],i,1,2));
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-O: s(sum(([H1,H2]*WO)[i],i,1,2),1);
+O: s(sum(([H1,H2]*WO)[i],i,1,2));
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-ds(y,a):=a/2*(1-y)*(1+y);
+ds(y):=1/2*(1-y)*(1+y);
 /* [wxMaxima: input   end   ] */
 
 
@@ -61,12 +66,12 @@ ds(y,a):=a/2*(1-y)*(1+y);
 
 
 /* [wxMaxima: input   start ] */
-dO: (1-O)*ds(O,1);
+dO: (1-O)*ds(O);
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-dH: dO*WO*[ds(H1,1),ds(H2,1)];
+dH: dO*WO*[ds(H1),ds(H2)];
 /* [wxMaxima: input   end   ] */
 
 
@@ -121,17 +126,17 @@ WH2: WH2+dWH2;
 
 
 /* [wxMaxima: input   start ] */
-H1: s(sum((I*WH1)[i],i,1,2),1);
+H1: s(sum((I*WH1)[i],i,1,2));
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-H2: s(sum((I*WH2)[i],i,1,2),1);
+H2: s(sum((I*WH2)[i],i,1,2));
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-O: s(sum(([H1,H2]*WO)[i],i,1,2),1);
+O: s(sum(([H1,H2]*WO)[i],i,1,2));
 /* [wxMaxima: input   end   ] */
 
 

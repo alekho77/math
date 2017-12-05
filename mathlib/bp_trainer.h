@@ -211,10 +211,11 @@ private:
       using Deltas = std::tuple_element_t<L, network_data_t>;  // Deltas of layer behind this one.
       using States = std::tuple_element_t<K, network_data_t>;  // Neuron values of this layer.
       using Errors = States;
-      //using Layer = network_layer_t<K, Network>;  // This layer in order to get derivatives.
+      using Layer = network_layer_t<K, Network>;  // This layer in order to get derivatives.
       using BLayer = network_layer_t<L, Network>;  // Layer behind this one in order to get connections weights.
       using Map = network_map_t<L, Network>;  // Map of connections between this layer and behind one.
       std::get<K>(deltas_) = blayer_walker<Errors, Deltas, Map, BLayer>(network_.layer<L>())(std::get<L>(deltas_));
+      std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states_), std::make_index_sequence<std::tuple_size<Layer>::value>());
       walk_behind_layer<K>();
     }
 

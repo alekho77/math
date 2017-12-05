@@ -51,18 +51,18 @@ TEST_F(bp_trainer_test_fixture, forward_pass) {
   const auto expected_state = std::make_tuple(std::make_tuple(0.2212784678984441, 0.3713602278765078), std::make_tuple(-0.2553291700256212));
   static_assert(std::is_same<decltype(expected_state), decltype(net_state)>::value, "Unexpected result type.");
   EXPECT_DOUBLE_EQ(std::get<0>(std::get<0>(expected_state)), std::get<0>(std::get<0>(net_state)));
-  EXPECT_DOUBLE_EQ(std::get<1>(std::get<0>(expected_state)), std::get<1>(std::get<0>(net_state)));
   EXPECT_DOUBLE_EQ(std::get<0>(std::get<1>(expected_state)), std::get<0>(std::get<1>(net_state)));
+  EXPECT_DOUBLE_EQ(std::get<1>(std::get<0>(expected_state)), std::get<1>(std::get<0>(net_state)));
 }
 
-TEST_F(bp_trainer_test_fixture, back_pass_1) {
+TEST_F(bp_trainer_test_fixture, back_pass_deltas) {
   const auto trainer = make_bp_trainer(network);
   const auto deltas = trainer.deltas(trainer.states(std::make_tuple(1, 0)), std::make_tuple(1));
   const auto expected_deltas = std::make_tuple(std::make_tuple(0.4185118261795359, -0.5817023683861284), std::make_tuple(0.5867452570956306));
   static_assert(std::is_same<decltype(expected_deltas), decltype(deltas)>::value, "Unexpected result type.");
-//   EXPECT_DOUBLE_EQ(std::get<0>(std::get<0>(expected_state)), std::get<0>(std::get<0>(net_state)));
-//   EXPECT_DOUBLE_EQ(std::get<1>(std::get<0>(expected_state)), std::get<1>(std::get<0>(net_state)));
-//   EXPECT_DOUBLE_EQ(std::get<0>(std::get<1>(expected_state)), std::get<0>(std::get<1>(net_state)));
+  EXPECT_DOUBLE_EQ(std::get<0>(std::get<0>(expected_deltas)), std::get<0>(std::get<0>(deltas)));
+  EXPECT_DOUBLE_EQ(std::get<0>(std::get<1>(expected_deltas)), std::get<0>(std::get<1>(deltas)));
+  EXPECT_DOUBLE_EQ(std::get<1>(std::get<0>(expected_deltas)), std::get<1>(std::get<0>(deltas)));
 }
 
 }  // namespace mathlib
