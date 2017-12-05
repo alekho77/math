@@ -39,10 +39,6 @@ TEST_F(nnetwork_test_fixture, construct) {
     EXPECT_EQ(0, std::get<1>(layer1).bias());
     EXPECT_EQ(0, std::get<2>(layer1).bias());
 
-    EXPECT_EQ(1, std::get<0>(layer1).slope());
-    EXPECT_EQ(1, std::get<1>(layer1).slope());
-    EXPECT_EQ(1, std::get<2>(layer1).slope());
-
     EXPECT_EQ(std::make_tuple(1, 1), std::get<0>(layer1).weights());
     EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<1>(layer1).weights());
     EXPECT_EQ(std::make_tuple(1, 1), std::get<2>(layer1).weights());
@@ -59,10 +55,6 @@ TEST_F(nnetwork_test_fixture, construct) {
     EXPECT_EQ(0, std::get<1>(layer1).bias());
     EXPECT_EQ(0, std::get<2>(layer1).bias());
 
-    EXPECT_EQ(1, std::get<0>(layer1).slope());
-    EXPECT_EQ(1, std::get<1>(layer1).slope());
-    EXPECT_EQ(1, std::get<2>(layer1).slope());
-
     EXPECT_EQ(std::make_tuple(1, 1), std::get<0>(layer1).weights());
     EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<1>(layer1).weights());
     EXPECT_EQ(std::make_tuple(1, 1), std::get<2>(layer1).weights());
@@ -70,7 +62,6 @@ TEST_F(nnetwork_test_fixture, construct) {
     const auto& layer2 = network2.layer<1>();
 
     EXPECT_EQ(0, std::get<0>(layer2).bias());
-    EXPECT_EQ(1, std::get<0>(layer2).slope());
     EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<0>(layer2).weights());
   }
 }

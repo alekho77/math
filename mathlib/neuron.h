@@ -13,22 +13,12 @@
 namespace mathlib {
 
 template <typename T>
-struct SLOPE {
-  T slope_ = T(1);
-};
-
-template <typename T>
-struct NOSLOPE {
-  static constexpr T slope_ = T(1);
-};
-
-template <typename T, typename S = NOSLOPE<T>>
-struct SIGMOID : S {
+struct SIGMOID {
   T operator () (T v) const {
-    return T(2) / (T(1) + std::exp(-S::slope_ * v)) - T(1);
+    return T(2) / (T(1) + std::exp(- v)) - T(1);
   }
-  T deriv(T y) const {
-    return S::slope_ / 2 * (1 + y) * (1 - y);
+  static T deriv(T y) {
+    return T(0.5) * (1 + y) * (1 - y);
   }
 };
 
@@ -50,7 +40,6 @@ class neuron : private B {
 public:
   using value_t = T;
   static constexpr bool use_bias = std::is_same<BIAS<T>, B>::value;
-  static constexpr bool use_slope = std::is_base_of<SLOPE<T>, F>::value;
   static constexpr size_t num_synapses = N;
   using weights_t = typename make_tuple_type<T, N>::type;
 
@@ -75,12 +64,6 @@ public:
   }
   inline T bias() const { return bias_; }
 
-  template <typename = std::enable_if_t<use_slope>>
-  inline void set_slope(T s) {
-    actfun_.slope_ = s;
-  }
-  inline T slope() const { return actfun_.slope_; }
-
   template <typename... Args>
   inline void set_weights(Args&&... args) {
     static_assert(sizeof...(Args) == N, "Number of arguments must be equal synapses.");
@@ -95,7 +78,7 @@ public:
   template <size_t I>
   inline T weight() const { return std::get<I>(weights_); }
 
-  inline T deriv(T y) const { return actfun_.deriv(y); }
+  inline static T deriv(T y) { return F::deriv(y); }
 
 private:
   template <size_t I>
