@@ -41,6 +41,11 @@ WO:[1.5,-2.3];
 
 
 /* [wxMaxima: input   start ] */
+BO: 0;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
 H1: s(sum((I*WH1)[i],i,1,2));
 /* [wxMaxima: input   end   ] */
 
@@ -51,7 +56,7 @@ H2: s(sum((I*WH2)[i],i,1,2));
 
 
 /* [wxMaxima: input   start ] */
-O: s(sum(([H1,H2]*WO)[i],i,1,2));
+O: s(sum(([H1,H2]*WO)[i],i,1,2)+BO);
 /* [wxMaxima: input   end   ] */
 
 
@@ -96,7 +101,17 @@ dWO: gHO*E;
 
 
 /* [wxMaxima: input   start ] */
+dBO: E*dO*1;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
 WO: WO+dWO;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+BO: BO+dBO;
 /* [wxMaxima: input   end   ] */
 
 
@@ -141,7 +156,7 @@ H2: s(sum((I*WH2)[i],i,1,2));
 
 
 /* [wxMaxima: input   start ] */
-O: s(sum(([H1,H2]*WO)[i],i,1,2));
+O: s(sum(([H1,H2]*WO)[i],i,1,2)+BO);
 /* [wxMaxima: input   end   ] */
 
 

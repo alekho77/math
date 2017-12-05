@@ -69,9 +69,21 @@ TEST_F(bp_trainer_test_fixture, back_pass_deltas) {
 
 TEST_F(bp_trainer_test_fixture, iteration) {
   auto trainer = make_bp_trainer(network);
+  trainer.set_learning_rate(0.7);
+  trainer.set_moment(0.3);
   auto errs = trainer(std::make_tuple(1, 0), std::make_tuple(1));
   EXPECT_DOUBLE_EQ(1.575851325117215, std::get<0>(errs));
-  EXPECT_DOUBLE_EQ(0.8380606860323391, std::get<1>(errs));
+  EXPECT_DOUBLE_EQ(0.5151895873080313, std::get<1>(errs));
+
+  EXPECT_DOUBLE_EQ(0.7429582783256752, std::get<0>(network.layer<0>()).weight<0>());
+  EXPECT_DOUBLE_EQ(-0.12, std::get<0>(network.layer<0>()).weight<1>());
+
+  EXPECT_DOUBLE_EQ(0.3728083421297101, std::get<1>(network.layer<0>()).weight<0>());
+  EXPECT_DOUBLE_EQ(0.13, std::get<1>(network.layer<0>()).weight<1>());
+
+  EXPECT_DOUBLE_EQ(1.59088386407576, std::get<0>(network.layer<1>()).weight<0>());
+  EXPECT_DOUBLE_EQ(-2.147474303333655, std::get<0>(network.layer<1>()).weight<1>());
+  EXPECT_DOUBLE_EQ(0.4107216799669414, std::get<0>(network.layer<1>()).bias());
 }
 
 }  // namespace mathlib

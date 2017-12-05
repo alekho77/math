@@ -47,8 +47,13 @@ public:
   }
 
   const network_data_t& states() const { return fp_.get_result(); }
-
   const network_data_t& deltas() const { return bp_deltas_.get_result(); }
+
+  value_t learning_rate() const { return p_weights_.learning_rate(); }
+  void set_learning_rate(value_t eta) { p_weights_.set_learning_rate(eta); }
+
+  value_t moment() const { return p_weights_.moment(); }
+  void set_moment(value_t alpha) { p_weights_.set_moment(alpha); }
 
 private:
   class randomizer {
@@ -284,9 +289,16 @@ private:
   class pass_weights {
   public:
     explicit pass_weights(Network& net) : network_(net) {}
+
     void operator ()(const input_t& inputs, const network_data_t& states, const network_data_t& deltas) {
       walk_layer<0>(inputs, states, deltas);
     }
+
+    value_t learning_rate() const { return eta_; }
+    void set_learning_rate(value_t eta) { eta_ = eta; }
+
+    value_t moment() const { return alpha_; }
+    void set_moment(value_t alpha) { alpha_ = alpha; }
 
   private:
     template <size_t K>
@@ -295,7 +307,7 @@ private:
       using Map = network_map_t<K, Network>;
       using Deltas = std::tuple_element_t<K, network_data_t>;  // Deltas of this layer.
       using Inputs = std::tuple_element_t<K - 1, network_data_t>;  // Inputs for this layer.
-      layer_walker<Layer, Map, Deltas, Inputs>()(std::get<K - 1>(states) ,std::get<K>(deltas), network_.layer<K>());
+      layer_walker<Layer, Map, Deltas, Inputs>(std::get<K - 1>(states), network_.layer<K>(), *this)(std::get<K>(deltas));
       walk_layer<K + 1>(inputs, states, deltas);
     }
     template <>
@@ -304,7 +316,7 @@ private:
       using Map = network_map_t<0, Network>;
       using Deltas = std::tuple_element_t<0, network_data_t>;  // Deltas of this layer.
       using Inputs = input_t;  // Inputs for this layer.
-      layer_walker<Layer, Map, Deltas, Inputs>()(inputs, std::get<0>(deltas), network_.layer<0>());
+      layer_walker<Layer, Map, Deltas, Inputs>(inputs, network_.layer<0>(), *this)(std::get<0>(deltas));
       walk_layer<1>(inputs, states, deltas);
     }
     template <>
@@ -312,56 +324,70 @@ private:
 
     template <typename Layer, typename Map, typename Deltas, typename Inputs>
     struct layer_walker {
-      explicit layer_walker() {}
+      explicit layer_walker(const Inputs& inputs, Layer& layer, const pass_weights& pw) : layer_(layer), inputs_(inputs), pw_(pw) {}
 
-      inline void operator ()(const Inputs& inputs, const Deltas& deltas, Layer& layer) {
-        walk_neuron<0>(inputs, deltas, layer);
+      inline void operator ()(const Deltas& deltas) {
+        walk_neuron<0>(deltas);
       }
 
       template <size_t I>
-      inline void walk_neuron(const Inputs& inputs, const Deltas& deltas, Layer& layer) {
+      inline void walk_neuron(const Deltas& deltas) {
         using Neuron = std::tuple_element_t<I, Layer>;
         using Indexes = typename get_type<I, Map>::type;
-        neuron_walker<Neuron, Indexes, Inputs, Neuron::use_bias>()(inputs, std::get<I>(deltas), std::get<I>(layer));
-        walk_neuron<I + 1>(inputs, deltas, layer);
+        neuron_walker<Neuron, Indexes, Inputs, Neuron::use_bias>(inputs_, std::get<I>(layer_), pw_)(std::get<I>(deltas));
+        walk_neuron<I + 1>(deltas);
       }
       template <>
-      inline void walk_neuron<std::tuple_size<Layer>::value>(const Inputs&, const Deltas&, Layer&) {}
+      inline void walk_neuron<std::tuple_size<Layer>::value>(const Deltas&) {}
+
+      const Inputs& inputs_;
+      Layer& layer_;
+      const pass_weights& pw_;
     };
 
     template <typename Neuron, typename Indexes, typename Inputs>
     struct neuron_walker_base {
-      explicit neuron_walker_base() {}
+      explicit neuron_walker_base(const Inputs& inputs, Neuron& n, const pass_weights& pw) : neuron_(n), inputs_(inputs), pw_(pw) {}
 
       template <size_t J>
-      inline void walk_weight(const Inputs& inputs, const value_t delta, Neuron& n) {
-        const value_t dw = /*eta * */delta * std::get<get_index<J, Indexes>()>(inputs); // + alpha * dw_prev
-        n.set_weight<J>(n.weight<J>() + dw);
-        walk_weight<J + 1>(inputs, delta, n);
+      inline void walk_weight(const value_t delta) {
+        const value_t dw = pw_.adjustment(delta, std::get<get_index<J, Indexes>()>(inputs_));
+        neuron_.set_weight<J>(neuron_.weight<J>() + dw);
+        walk_weight<J + 1>(delta);
       }
       template <>
-      inline void walk_weight<Neuron::num_synapses>(const Inputs&, const value_t, Neuron&) {}
+      inline void walk_weight<Neuron::num_synapses>(const value_t) {}
+
+      const Inputs& inputs_;
+      Neuron& neuron_;
+      const pass_weights& pw_;
     };
 
     template <typename Neuron, typename Indexes, typename Inputs, bool use_bias>
     struct neuron_walker : neuron_walker_base<Neuron, Indexes, Inputs> {
-      explicit neuron_walker() : neuron_walker_base<Neuron, Indexes, Inputs>() {}
-      inline void operator ()(const Inputs& inputs, const value_t delta, Neuron& n) {
-        walk_weight<0>(inputs, delta, n);
-        const value_t db = /*eta * */delta; // + alpha * db_prev
-        n.set_bias(n.bias() + db);
+      explicit neuron_walker(const Inputs& inputs, Neuron& n, const pass_weights& pw) : neuron_walker_base<Neuron, Indexes, Inputs>(inputs, n, pw) {}
+      inline void operator ()(const value_t delta) {
+        walk_weight<0>(delta);
+        const value_t db = pw_.adjustment(delta, 1);
+        neuron_.set_bias(neuron_.bias() + db);
       }
     };
 
     template <typename Neuron, typename Indexes, typename Inputs>
     struct neuron_walker<Neuron, Indexes, Inputs, false> : neuron_walker_base<Neuron, Indexes, Inputs> {
-      explicit neuron_walker() : neuron_walker_base<Neuron, Indexes, Inputs>() {}
-      inline void operator ()(const Inputs& inputs, const value_t delta, Neuron& n) {
-        walk_weight<0>(inputs, delta, n);
+      explicit neuron_walker(const Inputs& inputs, Neuron& n, const pass_weights& pw) : neuron_walker_base<Neuron, Indexes, Inputs>(inputs, n, pw) {}
+      inline void operator ()(const value_t delta) {
+        walk_weight<0>(delta);
       }
     };
 
+    inline value_t adjustment(const value_t delta, const value_t input) const {
+      return eta_ * delta * input; // + alpha * prev
+    }
+
     Network& network_;
+    value_t eta_ = 1;  // Learning rate
+    value_t alpha_ = 0;  // Moment of inertia for learning rate
   };
 
   template <size_t... I>
