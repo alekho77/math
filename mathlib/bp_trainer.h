@@ -9,14 +9,12 @@
 #include "nnetwork.h"
 
 #include <random>
-#include <functional>
 
 namespace mathlib {
 
 template <typename Network>
 class bp_trainer {
   using value_t = typename Network::value_t;
-  using apply_t = std::function<value_t ()>;
   using input_t = typename make_tuple_type<value_t, Network::input_size>::type;
 
   static constexpr size_t output_size = std::tuple_size<typename Network::output_t>::value;  // Number of neurons in the output layer.
