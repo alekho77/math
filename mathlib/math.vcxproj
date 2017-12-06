@@ -137,6 +137,7 @@
     <ClInclude Include="neuron.h" />
     <ClInclude Include="nnetwork.h" />
     <ClInclude Include="nonlsyseq.h" />
+    <ClInclude Include="trainingset.h" />
     <ClInclude Include="static_indexes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
