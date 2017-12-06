@@ -153,6 +153,7 @@
     <ClCompile Include="nnetwork_test.cpp" />
     <ClCompile Include="nonlsyseq_test.cpp" />
     <ClCompile Include="static_indexes_test.cpp" />
+    <ClCompile Include="trainingset_test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
