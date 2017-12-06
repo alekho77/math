@@ -1,5 +1,5 @@
 /* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
-/* [ Created with wxMaxima version 17.10.1 ] */
+/* [ Created with wxMaxima version 17.05.0 ] */
 /* [wxMaxima: input   start ] */
 kill(all)$
 /* [wxMaxima: input   end   ] */
@@ -16,7 +16,12 @@ ds(y):=1/2*(1-y)*(1+y);
 
 
 /* [wxMaxima: input   start ] */
-Eta:0.7, Alpha:0.3$
+E:0.7$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+A:0.3$
 /* [wxMaxima: input   end   ] */
 
 
@@ -41,12 +46,12 @@ deltas(Des):=block(
 
 /* [wxMaxima: input   start ] */
 weights(In):=block(
-    dWO: Eta*dO*[H1,H2] + Slpha*dWO,
+    dWO: [H1,H2]*E*dO + dWO*A,
     WO: WO+dWO,
-    dBO: Eta*dO*1 + Alpha*dBO,
+    dBO: E*dO*1 + dBO*A,
     BO: BO+dBO,
-    dWH1: Eta*In*dH[1] + Alpha*dWH1,
-    dWH2: Eta*In*dH[2] + Alpha*dWH2,
+    dWH1: In*dH[1]*E + dWH1*A,
+    dWH2: In*dH[2]*E + dWH2*A,
     WH1: WH1+dWH1,
     WH2: WH2+dWH2,
     display([WH1,WH2],[WO,BO])
@@ -110,62 +115,28 @@ Set: [[[0,0],0],[[1,0],1],[[0,1],1],[[1,1],0]]$
 
 
 /* [wxMaxima: input   start ] */
-for i:1 thru length(Set) do block(
-    display(Set[i]),
-    forward_pass(Set[i][1],Set[i][2]),
-    deltas(Set[i][2]),
-    weights(Set[i][1])
+iteration(In,Out):=block(
+    forward_pass(In,Out),
+    deltas(Out),
+    weights(In),
+    forward_pass(In,Out)
 )$
 /* [wxMaxima: input   end   ] */
 
 
-/* [wxMaxima: comment start ]
-First iteration
-   [wxMaxima: comment end   ] */
-
-
 /* [wxMaxima: input   start ] */
-forward_pass([1,0],1);
+trainingSet():=for i:1 step 1 thru length(Set) do block(
+        display(Set[i]),
+        iteration(Set[i][1],Set[i][2])
+    )$
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-deltas(1);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
-weights([1,0]);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
-forward_pass([1,0],1);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: comment start ]
-Second iteration
-   [wxMaxima: comment end   ] */
-
-
-/* [wxMaxima: input   start ] */
-forward_pass([1,0],1);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
-deltas(1);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
-weights([1,0]);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
-forward_pass([1,0],1);
+for epoch:1 thru 3 do block(
+        print("Epoch ", epoch),
+        trainingSet()
+    )$
 /* [wxMaxima: input   end   ] */
 
 
