@@ -15,7 +15,6 @@ namespace mathlib {
 template <typename Network>
 class bp_trainer {
   using value_t = typename Network::value_t;
-  using input_t = typename make_tuple_type<value_t, Network::input_size>::type;
 
   static constexpr size_t output_size = std::tuple_size<typename Network::output_t>::value;  // Number of neurons in the output layer.
 
@@ -25,6 +24,8 @@ class bp_trainer {
   using network_data_t = decltype(helper_network_data(std::make_index_sequence<Network::num_layers>()));
 
 public:
+  using input_t = typename make_tuple_type<value_t, Network::input_size>::type;
+
   explicit bp_trainer(Network& net) : network_(net), fp_(net), bp_deltas_(net), p_weights_(net){}
 
   void randomize(value_t range = 1, unsigned seed = std::random_device()()) {
