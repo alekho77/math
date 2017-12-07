@@ -37,10 +37,10 @@ protected:
     std::make_tuple(std::make_tuple(1.0, 1.0), 0.0)
   };
   const std::vector<std::tuple<double, double>> errors = {
-    std::make_tuple(0.0, 0.0),
-    std::make_tuple(1.575851325117215, 0.5151895873080313),
-    std::make_tuple(0.8321630367385499, 0.223760066502746),
-    std::make_tuple(0.4117459150788285, 0.332333996443997)
+    std::make_tuple(0.1610515941460189, 0.1423169375538049),
+    std::make_tuple(0.4678944794333771, 0.409865052384153),
+    std::make_tuple(0.3817107887266827, 0.3126116795194077),
+    std::make_tuple(0.1583207898742187, 0.1416541662911197)
   };
 };
 
@@ -64,8 +64,8 @@ TEST_F(trainingset_test_fixture, training) {
     EXPECT_EQ(count, idx);
     EXPECT_EQ(std::get<0>(this->samples[idx]), inputs);
     EXPECT_EQ(std::get<1>(this->samples[idx]), std::get<0>(outputs));
-    EXPECT_DOUBLE_EQ(std::get<0>(this->errors[idx]), std::get<0>(errs));
-    EXPECT_DOUBLE_EQ(std::get<1>(this->errors[idx]), std::get<1>(errs));
+    EXPECT_NEAR(std::get<0>(this->errors[idx]), std::get<0>(errs), 1e-15);
+    EXPECT_NEAR(std::get<1>(this->errors[idx]), std::get<1>(errs), 1e-15);
     count++;
   };
   training.set_learning_rate(0.7);

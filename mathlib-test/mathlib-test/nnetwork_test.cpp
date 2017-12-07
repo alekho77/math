@@ -31,7 +31,7 @@ TEST_F(nnetwork_test_fixture, construct) {
     network1_t network1;
     auto res1 = network1(-1, 0, 1);
 
-    EXPECT_EQ(std::make_tuple(0, 0, 0), res1);
+    EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), res1);
 
     const auto& layer1 = network1.layer<0>();
 
@@ -47,7 +47,7 @@ TEST_F(nnetwork_test_fixture, construct) {
     const network2_t network2;
     auto res2 = network2(1, 0, -1);
 
-    EXPECT_EQ(std::make_tuple(0), res2);
+    EXPECT_EQ(std::make_tuple(SIGMOID<double>()(3*0.5)), res2);
 
     const auto& layer1 = network2.layer<0>();
 
@@ -70,14 +70,14 @@ TEST_F(nnetwork_test_fixture, topology) {
   {
     network1_t network1;
     auto res1 = network1(-1, 0, 1);
-    EXPECT_EQ(std::make_tuple(0, 0, 0), res1);
+    EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), res1);
 
     auto& layer1 = network1.layer<0>();
     std::get<0>(layer1).set_weights(-3, 1);
     std::get<1>(layer1).set_weights(-1, -1, 1);
     std::get<2>(layer1).set_weights(1, -3);
 
-    EXPECT_EQ(std::make_tuple(0, 0, 0), network1(1, 2, 3));
+    EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), network1(1, 2, 3));
   }
 }
 

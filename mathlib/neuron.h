@@ -15,10 +15,10 @@ namespace mathlib {
 template <typename T>
 struct SIGMOID {
   T operator () (T v) const {
-    return T(2) / (T(1) + std::exp(- v)) - T(1);
+    return T(1) / (T(1) + std::exp(- v));
   }
   static T deriv(T y) {
-    return T(0.5) * (1 + y) * (1 - y);
+    return y * (1 - y);
   }
 };
 
