@@ -69,7 +69,7 @@ TEST_F(trainingset_test_fixture, training) {
     count++;
   };
   training.set_learning_rate(0.7);
-  training.set_moment(0.3);
+  training.set_momentum(0.3);
   training(cb);
 }
 

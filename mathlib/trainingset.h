@@ -63,8 +63,8 @@ public:
   value_t learning_rate() const { return trainer_.learning_rate(); }
   void set_learning_rate(value_t eta) { trainer_.set_learning_rate(eta); }
 
-  value_t moment() const { return trainer_.moment(); }
-  void set_moment(value_t alpha) { trainer_.set_moment(alpha); }
+  value_t momentum() const { return trainer_.momentum(); }
+  void set_momentum(value_t alpha) { trainer_.set_momentum(alpha); }
 
   template <typename Callback>
   void operator ()(const Callback& cb) {

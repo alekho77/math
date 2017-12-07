@@ -70,7 +70,7 @@ TEST_F(bp_trainer_test_fixture, back_pass_deltas) {
 TEST_F(bp_trainer_test_fixture, iteration) {
   auto trainer = make_bp_trainer(network);
   trainer.set_learning_rate(0.7);
-  trainer.set_moment(0.3);
+  trainer.set_momentum(0.3);
 
   {
     // The first iteration

@@ -51,8 +51,8 @@ public:
   value_t learning_rate() const { return p_weights_.learning_rate(); }
   void set_learning_rate(value_t eta) { p_weights_.set_learning_rate(eta); }
 
-  value_t moment() const { return p_weights_.moment(); }
-  void set_moment(value_t alpha) { p_weights_.set_moment(alpha); }
+  value_t momentum() const { return p_weights_.momentum(); }
+  void set_momentum(value_t alpha) { p_weights_.set_momentum(alpha); }
 
 private:
   class randomizer {
@@ -316,8 +316,8 @@ private:
     value_t learning_rate() const { return eta_; }
     void set_learning_rate(value_t eta) { eta_ = eta; }
 
-    value_t moment() const { return alpha_; }
-    void set_moment(value_t alpha) { alpha_ = alpha; }
+    value_t momentum() const { return alpha_; }
+    void set_momentum(value_t alpha) { alpha_ = alpha; }
 
   private:
     template <size_t K>
