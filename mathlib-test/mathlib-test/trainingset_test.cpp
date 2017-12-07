@@ -42,6 +42,11 @@ protected:
     std::make_tuple(0.3817107887266827, 0.3126116795194077),
     std::make_tuple(0.1583207898742187, 0.1416541662911197)
   };
+  const std::vector<std::tuple<double, double>> epoch_errors = {
+    std::make_tuple(0.2922444130450744, 0.2516119589371213),
+    std::make_tuple(0.2849186824051443, 0.2426129589742493),
+    std::make_tuple(0.2814832227899324, 0.2384869744280807)
+  };
 };
 
 TEST_F(trainingset_test_fixture, load) {
@@ -70,7 +75,13 @@ TEST_F(trainingset_test_fixture, training) {
   };
   training.set_learning_rate(0.7);
   training.set_momentum(0.3);
-  training(cb);
+  auto errs1 = training(cb);
+  EXPECT_EQ(epoch_errors[0], errs1);
+  auto errs2 = training([](size_t, auto, auto, auto) {});
+  EXPECT_DOUBLE_EQ(std::get<0>(epoch_errors[1]), std::get<0>(errs2));
+  EXPECT_DOUBLE_EQ(std::get<1>(epoch_errors[1]), std::get<1>(errs2));
+  auto errs3 = training([](size_t, auto, auto, auto) {});
+  EXPECT_EQ(epoch_errors[2], errs3);
 }
 
 }  // namespace mathlib

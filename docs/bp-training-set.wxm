@@ -30,7 +30,8 @@ forward_pass(In,Des):=block(
     H1: s(sum((In*WH1)[i],i,1,2)),
     H2: s(sum((In*WH2)[i],i,1,2)),
     O: s(sum(([H1,H2]*WO)[i],i,1,2)+BO),
-    display([H1,H2,O],(Des - O)^2)
+    Err: (Des - O)^2,
+    display([H1,H2,O],Err)
 )$
 /* [wxMaxima: input   end   ] */
 
@@ -117,17 +118,26 @@ Set: [[[0,0],0],[[1,0],1],[[0,1],1],[[1,1],0]]$
 /* [wxMaxima: input   start ] */
 iteration(In,Out):=block(
     forward_pass(In,Out),
+    Err1: Err,
     deltas(Out),
     weights(In),
-    forward_pass(In,Out)
+    forward_pass(In,Out),
+    Err2: Err
 )$
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-trainingSet():=for i:1 step 1 thru length(Set) do block(
-        display(Set[i]),
-        iteration(Set[i][1],Set[i][2])
+trainingSet():=block([terr1,terr2], terr1:0, terr2:0,
+        for i:1 step 1 thru length(Set) do block(
+            display(Set[i]),
+            iteration(Set[i][1],Set[i][2]),
+            terr1: terr1 + Err1,
+            terr2: terr2 + Err2
+        ),
+        terr1: terr1/length(Set),
+        terr2: terr2/length(Set),
+        display(terr1,terr2)
     )$
 /* [wxMaxima: input   end   ] */
 
