@@ -32,10 +32,17 @@ public:
   size_t load(std::istream& in) {
     std::vector<sample_t> samples;
     while (in) {
-      sample_t sample;
-      in.read(reinterpret_cast<char*>(&sample), sizeof(sample));
+      value_t input_data[std::tuple_size<input_t>::value] = {0};
+      in.read(reinterpret_cast<char*>(input_data), sizeof(input_data));
       if (in) {
-        samples.push_back(sample);
+        value_t output_data[std::tuple_size<output_t>::value] = {0};
+        in.read(reinterpret_cast<char*>(output_data), sizeof(output_data));
+        if (in) {
+          sample_t sample;
+          pack_to_tuple(input_data, std::get<0>(sample), std::make_index_sequence<std::tuple_size<input_t>::value>());
+          pack_to_tuple(output_data, std::get<1>(sample), std::make_index_sequence<std::tuple_size<output_t>::value>());
+          samples.push_back(sample);
+        }
       }
     }
     if (in.eof()) {
@@ -78,6 +85,11 @@ public:
   }
 
 private:
+  template <typename T, size_t... I>
+  void pack_to_tuple(const value_t data[sizeof...(I)], T& tuple, std::index_sequence<I...>) {
+    tuple = {data[I]...};
+  }
+
   Network& network_;
   trainer_t trainer_;
   std::vector<sample_t> samples_;

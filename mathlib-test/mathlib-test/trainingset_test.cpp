@@ -27,14 +27,14 @@ protected:
   using HiddenLayer = nnetwork<InputLayer, std::tuple<Neuron2, Neuron2>, Map1>;
   using Network = nnetwork<HiddenLayer, std::tuple<Neuron1>, Map2>;
 
-  using Sample = std::tuple<std::tuple<double, double>, double>;
+  //using Sample = std::tuple<std::tuple<double, double>, double>;
 
   Network network;
-  const std::vector<Sample> samples = {
-    std::make_tuple(std::make_tuple(0.0, 0.0), 0.0),
-    std::make_tuple(std::make_tuple(1.0, 0.0), 1.0),
-    std::make_tuple(std::make_tuple(0.0, 1.0), 1.0),
-    std::make_tuple(std::make_tuple(1.0, 1.0), 0.0)
+  const std::vector<double> samples = { 
+    0.0, 0.0, 0.0,
+    1.0, 0.0, 1.0,
+    0.0, 1.0, 1.0,
+    1.0, 1.0, 0.0
   };
   const std::vector<std::tuple<double, double>> errors = {
     std::make_tuple(0.1610515941460189, 0.1423169375538049),
@@ -51,7 +51,7 @@ protected:
 
 TEST_F(trainingset_test_fixture, load) {
   using namespace boost::iostreams;
-  stream_buffer<array_source> buf(reinterpret_cast<const char*>(samples.data()), sizeof(Sample) * samples.size());
+  stream_buffer<array_source> buf(reinterpret_cast<const char*>(samples.data()), sizeof(double) * samples.size());
   std::istream in(&buf);
   auto training = make_training_set<bp_trainer>(network);
   size_t count = training.load(in);
@@ -60,15 +60,16 @@ TEST_F(trainingset_test_fixture, load) {
 
 TEST_F(trainingset_test_fixture, training) {
   using namespace boost::iostreams;
-  stream_buffer<array_source> buf(reinterpret_cast<const char*>(samples.data()), sizeof(Sample) * samples.size());
+  stream_buffer<array_source> buf(reinterpret_cast<const char*>(samples.data()), sizeof(double) * samples.size());
   std::istream in(&buf);
   auto training = make_training_set<bp_trainer>(network);
   ASSERT_EQ(4, training.load(in));
   size_t count = 0;
   auto cb = [&count, this](size_t idx, auto inputs, auto outputs, auto errs) {
     EXPECT_EQ(count, idx);
-    EXPECT_EQ(std::get<0>(this->samples[idx]), inputs);
-    EXPECT_EQ(std::get<1>(this->samples[idx]), std::get<0>(outputs));
+    EXPECT_EQ(this->samples[3 * idx + 0], std::get<0>(inputs));
+    EXPECT_EQ(this->samples[3 * idx + 1], std::get<1>(inputs));
+    EXPECT_EQ(this->samples[3 * idx + 2], std::get<0>(outputs));
     EXPECT_NEAR(std::get<0>(this->errors[idx]), std::get<0>(errs), 1e-15);
     EXPECT_NEAR(std::get<1>(this->errors[idx]), std::get<1>(errs), 1e-15);
     count++;
