@@ -67,6 +67,10 @@ public:
     std::shuffle(indexes_.begin(), indexes_.end(), gen);
   }
 
+  void randomize_network(value_t range = 1, unsigned seed = std::random_device()()) {
+    trainer_.randomize(range, seed);
+  }
+
   value_t learning_rate() const { return trainer_.learning_rate(); }
   void set_learning_rate(value_t eta) { trainer_.set_learning_rate(eta); }
 
