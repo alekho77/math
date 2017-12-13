@@ -69,7 +69,7 @@ public:
     static_assert(sizeof...(Args) == N, "Number of arguments must be equal synapses.");
     weights_ = std::forward_as_tuple(args...);
   }
-  inline weights_t weights() const { return weights_; }
+  inline const weights_t& weights() const { return weights_; }
 
   template <size_t I>
   inline void set_weight(T val) {
