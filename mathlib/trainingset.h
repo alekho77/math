@@ -21,12 +21,12 @@ class training_set {
   using value_t = typename Network::value_t;
   using input_t = typename trainer_t::input_t;
   using output_t = typename Network::output_t;
-  using sample_t = std::tuple<input_t, output_t>;
   using errors_t = std::tuple<value_t, value_t>;
 
+public:
+  using sample_t = std::tuple<input_t, output_t>;
   static_assert(sizeof(sample_t) == (std::tuple_size<input_t>::value + std::tuple_size<output_t>::value) * sizeof(value_t), "Something wrong with type size or alignment.");
 
-public:
   explicit training_set(Network& net) : network_(net), trainer_(net) {}
 
   size_t load(std::istream& in) {
