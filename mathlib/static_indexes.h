@@ -23,6 +23,17 @@ static constexpr size_t get_index() {
   return Pack::indexes[I];
 }
 
+template <size_t N>
+class make_index_pack {
+  template <size_t... I>
+  static auto helper(std::index_sequence<I...>) -> decltype(index_pack<I...>()) {}
+public:
+  using type = decltype(helper(std::make_index_sequence<N>()));
+};
+
+template <size_t N>
+using index_sequence_pack_t = typename make_index_pack<N>::type;
+
 template <typename... P>
 struct type_pack;
 
