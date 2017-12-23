@@ -77,6 +77,15 @@ public:
   value_t momentum() const { return trainer_.momentum(); }
   void set_momentum(value_t alpha) { trainer_.set_momentum(alpha); }
 
+  errors_t operator ()() {
+    errors_t sum_errs{};
+    for (size_t idx : indexes_) {
+      errors_t errs = trainer_(std::get<0>(samples_[idx]), std::get<1>(samples_[idx]));
+      sum_errs = std::forward_as_tuple(std::get<0>(sum_errs) + std::get<0>(errs), std::get<1>(sum_errs) + std::get<1>(errs));
+    }
+    return samples_.empty() ? sum_errs : std::forward_as_tuple(std::get<0>(sum_errs) / samples_.size(), std::get<1>(sum_errs) / samples_.size());
+  }
+
   template <typename Callback>
   errors_t operator ()(const Callback& cb) {
     errors_t sum_errs{};
