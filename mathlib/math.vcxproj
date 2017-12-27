@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClInclude Include="approx.h" />
     <ClInclude Include="bp_trainer.h" />
+    <ClInclude Include="cnnetwork.h" />
     <ClInclude Include="derivative.h" />
     <ClInclude Include="fapprox.h" />
     <ClInclude Include="fmatrix.h" />
@@ -139,6 +140,9 @@
     <ClInclude Include="nonlsyseq.h" />
     <ClInclude Include="trainingset.h" />
     <ClInclude Include="static_indexes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="cnnetwork.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
