@@ -156,6 +156,11 @@
     <ClCompile Include="static_indexes_test.cpp" />
     <ClCompile Include="trainingset_test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\mathlib\math.vcxproj">
+      <Project>{f39bd92c-b08f-4e7d-80ed-47eacd6f4ef7}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

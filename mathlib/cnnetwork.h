@@ -22,12 +22,13 @@ struct cnneuron {
 
 class cnnetwork {
 public:
+  cnnetwork() = delete;
+  cnnetwork(size_t inputs);
   cnnetwork(cnnetwork&&) = default;
-  ~cnnetwork() = default;
+  ~cnnetwork();
 
-  static cnnetwork make(size_t inputs, );
 private:
-  cnnetwork();
+
   class impl;
   std::unique_ptr<impl> impl_;
 };
