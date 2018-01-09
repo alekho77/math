@@ -7,6 +7,7 @@
 #define MATHLIB_CNNETWORK_H
 
 #include <memory>
+#include <vector>
 
 namespace mathlib {
 
@@ -20,10 +21,17 @@ struct cnneuron {
   bool bias;
 };
 
+struct cnnode {
+  cnneuron neuron;
+  std::vector<int> map;
+};
+
+using cnlayer = std::vector<cnnode>;
+
 class cnnetwork {
 public:
   cnnetwork() = delete;
-  cnnetwork(size_t inputs);
+  cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers);
   cnnetwork(cnnetwork&&) = default;
   ~cnnetwork();
 
