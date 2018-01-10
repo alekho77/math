@@ -28,7 +28,7 @@ namespace mathlib {
 
   TEST_F(cnnetwork_test_fixture, construct) {
     {
-      cnnetwork network1(3);
+      //cnnetwork network1(3);
       //auto res1 = network1(-1, 0, 1);
 
       //EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), res1);

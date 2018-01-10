@@ -1,4 +1,5 @@
 #include "cnnetwork.h"
+#include "helpers.h"
 
 #include <CL/cl.hpp>
 
@@ -16,9 +17,9 @@ public:
 
 private:
   struct cllayer {
-    cl_int weights_stride;
     const cl::Buffer& inputs;
     cl::Buffer nodes;  // neurons description
+    cl_int weights_stride;
     cl::Buffer weights;
     cl::Buffer outputs;
   };
@@ -58,7 +59,7 @@ void cnnetwork::impl::add_input_layer(size_t inputs) {
 }
 
 void cnnetwork::impl::add_layer(const cnlayer& layer) {
-  // Finding maximum number of synapses
+  // Finding maximum number of synapses including the bias
   size_t max_w = 0;
   for (const auto& n: layer) {
     if (!n.neuron.synapses) {
@@ -66,14 +67,12 @@ void cnnetwork::impl::add_layer(const cnlayer& layer) {
     }
     max_w = std::max(max_w, n.neuron.synapses + 1);  // the bias is counted always
   }
-  // Finding the nearest power 2 that is greater than the number
-  int count = 0;
-  for (; max_w > 0; count++) {
-    max_w >>= 1;
-  }
-  layers_.emplace_back(layers_.size() > 0 ? layers_.back().outputs : input_buf_,
+  int w_stride = nearest_upper_pow2((int)max_w);
+  layers_.push_back({layers_.size() > 0 ? layers_.back().outputs : input_buf_,
                        cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(clnode) * layer.size()),
-                       );
+                       w_stride,
+                       cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * w_stride * layer.size()),
+                       cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * layer.size())});
 }
 
 }  // namespace mathlib
