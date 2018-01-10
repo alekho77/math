@@ -89,6 +89,22 @@ public:
   using type = decltype(helper(std::make_index_sequence<N>()));
 };
 
+// Finding the nearest power 2 that is greater or equal than the number
+template <typename T, typename = std::enable_if_t<std::numeric_limits<T>::is_integer && !std::is_same<bool, T>::value>>
+T nearest_upper_pow2(T val) {
+  static_assert(sizeof(T) <= sizeof(uint64_t), "The value is bigger than 64 bit");
+  if (!val) {
+    return 1;
+  }
+  uint64_t mval{0};
+  std::memcpy(&mval, &val, sizeof(val));
+  uint64_t res = 1;
+  for (--mval; mval; res <<= 1) {
+    mval >>= 1;
+  }
+  return *reinterpret_cast<T*>(&res);
+}
+
 }  // namespace mathlib
 
 #endif  // MATHLIB_HELPERS_H
