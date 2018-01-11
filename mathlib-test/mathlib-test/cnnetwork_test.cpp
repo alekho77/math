@@ -6,15 +6,10 @@ namespace mathlib {
 
   class cnnetwork_test_fixture : public ::testing::Test {
   protected:
-    //using InputLayer = input_layer<double, 3>;
-    //using Neuron1 = neuron<double, 3>;
-    //using Neuron2 = neuron<double, 2>;
-    //using OutputLayer = std::tuple<Neuron2, Neuron1, Neuron2>;
-
-    //using map1 = index_pack<0, 2>;
-    //using map2 = index_pack<0, 1, 2>;
-    //using map3 = index_pack<2, 0>;
-    //using Map = type_pack<map1, map2, map3>;
+    const size_t inputs = 3;
+    const cnneuron neuron1 = {cnfunction::sigmoid, 3, true};
+    const cnneuron neuron2 = {cnfunction::sigmoid, 2, true};
+    const cnlayer layer1 = {cnnode{neuron2, {0, 2}}, cnnode{neuron1, {0, 1, 2}}, cnnode{neuron2, {2, 0}}};
 
     //using network1_t = nnetwork<InputLayer, OutputLayer, Map>;
     //static_assert(network1_t::num_layers == 1, "Wrong layers number");
@@ -28,9 +23,10 @@ namespace mathlib {
 
   TEST_F(cnnetwork_test_fixture, construct) {
     {
-      //cnnetwork network1(3);
+      cnnetwork network1(inputs, {layer1});
+      
       //auto res1 = network1(-1, 0, 1);
-
+      //ASSERT_TRUE(res1.size() == 3);
       //EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), res1);
 
       //const auto& layer1 = network1.layer<0>();

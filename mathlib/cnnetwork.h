@@ -12,12 +12,12 @@
 namespace mathlib {
 
 enum class cnfunction {
-  sigmoid
+  sigmoid = 1
 };
 
 struct cnneuron {
   cnfunction type;
-  size_t synapses;
+  int synapses;
   bool bias;
 };
 
@@ -35,8 +35,16 @@ public:
   cnnetwork(cnnetwork&&) = default;
   ~cnnetwork();
 
-private:
+  cnlayer layer(size_t idx) const;
 
+  std::vector<double> operator ()(const std::vector<double>& inputs);
+
+  template <typename... Args>
+  std::vector<double> operator ()(Args... args) {
+    return operator() ({static_cast<double>(args)...});
+  }
+
+private:
   class impl;
   std::unique_ptr<impl> impl_;
 };
