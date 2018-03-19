@@ -20,10 +20,10 @@ class jacobian<R(Args...)> {
   using derivative_t = derivative<R(Args...)>;
 public:
   explicit jacobian(size_t rows) : W_(rows, sizeof...(Args)), derivatives_(rows) {}
-  jacobian(const std::initializer_list<function_t>& flist) : jacobian(flist.size()) {
+  jacobian(std::initializer_list<function_t>&& flist) : jacobian(flist.size()) {
     auto fiter = flist.begin();
     for (size_t i = 0; i < flist.size(); i++, ++fiter) {
-      initialize_row(i, *fiter);
+      initialize_row(i, std::move(*fiter));
     }
   }
   jacobian& initialize_row(size_t idx, const function_t& fun) {
@@ -46,7 +46,7 @@ private:
   void make_jacobian_row(size_t idx, std::initializer_list<function_t>&& list) {
     auto fiter = list.begin();
     for (size_t j = 0; j < list.size(); j++, ++fiter) {
-      W_[idx][j] = *fiter;
+      W_[idx][j] = std::move(*fiter);
     }
   }
   fmatrix<R(Args...)> W_;

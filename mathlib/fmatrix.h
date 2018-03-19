@@ -29,9 +29,7 @@ class fmatrix<R(Args...)> {
   class row {
   public:
     row() = delete;
-    row(row&& /*r*/) = default;
-    row(const row& /*r*/) = default;
-    row(iter_t&& r) : row_begin(r) {}
+    row(iter_t&& r) : row_begin(std::move(r)) {}
     typename iter_t::reference operator [] (size_t c) {
       return *(row_begin + c);
     }
@@ -51,8 +49,8 @@ public:
     auto iter = data_.begin();
     for (const auto& r : list) {
       if (r.size() == cols_) {
-        for (const auto& i : r) {
-          *iter = i;
+        for (auto&& i : r) {
+          *iter = std::move(i);
           ++iter;
         }
       } else {

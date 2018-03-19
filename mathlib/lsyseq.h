@@ -17,7 +17,7 @@ class linear_equations {
   static_assert(std::is_floating_point<T>::value == true, "Solving system of linear equations is possible only for floating point numbers.");
 public:
   linear_equations() = delete;
-  linear_equations(matrix<T>&& a, matrix<T>&& b) noexcept(false) : X_(a.rows()), A_(a), B_(b) {
+  linear_equations(matrix<T>&& a, matrix<T>&& b) noexcept(false) : X_(a.rows()), A_(std::move(a)), B_(std::move(b)) {
     if (A_.rows() < A_.cols()) {
       throw std::invalid_argument("Number of equations is less than variables. The system has no solution.");
     } else if (A_.rows() > A_.cols()) {

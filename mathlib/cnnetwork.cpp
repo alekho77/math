@@ -141,7 +141,7 @@ cnlayer cnnetwork::impl::get_layer(size_t idx) const {
   for (size_t i = 0; i < idx; ++i) {
     ++iter;
   }
-  const cllayer& curr_cllayer = *iter;
+  //const cllayer& curr_cllayer = *iter;
 
   return cnlayer();
 }

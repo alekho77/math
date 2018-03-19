@@ -26,15 +26,7 @@ public:
   derivative() : derivative(function_t()) {}
   derivative(const function_t& f, R eps) : func_(f), epsilon_(eps) {}
   explicit derivative(const function_t& f) : derivative(f, numeric_consts<R>::epsilon) {}
-  explicit derivative(function_t&& f) : derivative(f, numeric_consts<R>::epsilon) {}
-  derivative(const derivative&) = default;
-  derivative(derivative&&) = default;
-  
-  derivative& operator = (derivative&& that) {
-    std::swap(epsilon_, that.epsilon_);
-    std::swap(func_, that.func_);
-    return *this;
-  }
+  explicit derivative(function_t&& f) : derivative(std::move(f), numeric_consts<R>::epsilon) {}
 
   // Calculate partial derivative
   template<size_t K>

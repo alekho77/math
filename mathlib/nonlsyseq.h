@@ -21,9 +21,9 @@ class nonlinear_equations<R(Args...)> {
 
 public:
   nonlinear_equations() = delete;
-  nonlinear_equations(const std::initializer_list<function_t>& list)
+  nonlinear_equations(std::initializer_list<function_t>&& list)
     : F_(transpose(fmatrix<R(Args...)>{list}))
-    , W_(list) {
+    , W_(std::move(list)) {
     if (list.size() != sizeof...(Args)) {
       throw std::invalid_argument("Number of equations shall be equal number of variables.");
     }

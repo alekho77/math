@@ -27,9 +27,7 @@ class matrix
   class row {
   public:
     row() = delete;
-    row(row&& /*r*/) = default;
-    row(const row& /*r*/) = default;
-    row(size_t cols, iter_t&& r) : cols_(cols), row_begin(r) {}
+    row(size_t cols, iter_t&& r) : cols_(cols), row_begin(std::move(r)) {}
     typename iter_t::reference operator [] (size_t c) {
       assert(c < cols_);
       return *(row_begin + c);
@@ -41,8 +39,8 @@ class matrix
     row& operator = (std::initializer_list<T>&& list) {
       assert(list.size() == cols_);
       auto iter = row_begin;
-      for (const auto& v: list) {
-        *iter++ = v;
+      for (auto&& v: list) {
+        *iter++ = std::move(v);
       }
       return *this;
     }
@@ -61,8 +59,8 @@ public:
     auto iter = data_.begin();
     for (const auto& r: list) {
       if (r.size() == cols_) {
-        for (const auto& i : r) {
-          *iter++ = i;
+        for (auto&& i : r) {
+          *iter++ = std::move(i);
         }
       } else {
         throw std::range_error("Row lengths are different in the initialization list.");
@@ -71,7 +69,6 @@ public:
   }
 
   matrix(const matrix& /*m*/) = default;
-  matrix(matrix&& /*m*/) = default;
 
   matrix& operator = (const matrix& m) {
     rows_ = m.rows_;
