@@ -11,42 +11,40 @@
 
 namespace mathlib {
 
-enum class cnfunction {
-  sigmoid = 1
-};
+enum class cnfunction { sigmoid = 1 };
 
 struct cnneuron {
-  cnfunction type;
-  size_t synapses;
-  bool bias;
+    cnfunction type;
+    size_t synapses;
+    bool bias;
 };
 
 struct cnnode {
-  cnneuron neuron;
-  std::vector<int> map;
+    cnneuron neuron;
+    std::vector<int> map;
 };
 
 using cnlayer = std::vector<cnnode>;
 
 class cnnetwork {
-public:
-  cnnetwork() = delete;
-  cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers);
-  ~cnnetwork();
+ public:
+    cnnetwork() = delete;
+    cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers);
+    ~cnnetwork();
 
-  size_t layer_num() const;
-  cnlayer layer(size_t idx) const;
+    size_t layer_num() const;
+    cnlayer layer(size_t idx) const;
 
-  std::vector<double> operator ()(const std::vector<double>& inputs);
+    std::vector<double> operator()(const std::vector<double>& inputs);
 
-  template <typename... Args>
-  std::vector<double> operator ()(Args... args) {
-    return operator() ({static_cast<double>(args)...});
-  }
+    template <typename... Args>
+    std::vector<double> operator()(Args... args) {
+        return operator()({static_cast<double>(args)...});
+    }
 
-private:
-  class impl;
-  std::unique_ptr<impl> impl_;
+ private:
+    class impl;
+    std::unique_ptr<impl> impl_;
 };
 
 }  // namespace mathlib

@@ -30,6 +30,6 @@ static_assert(4 == cidx4, "Wrong index");
 
 using pack2_t = make_type_pack<indexes3_t, 3>::type;
 static_assert(std::is_same<type_pack<indexes3_t, indexes3_t, indexes3_t>, pack2_t>::value, "Wrong type");
-}
+}  // namespace
 
 }  // namespace mathlib
