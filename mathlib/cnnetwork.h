@@ -17,7 +17,7 @@ enum class cnfunction {
 
 struct cnneuron {
   cnfunction type;
-  int synapses;
+  size_t synapses;
   bool bias;
 };
 
@@ -34,6 +34,7 @@ public:
   cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers);
   ~cnnetwork();
 
+  size_t layer_num() const;
   cnlayer layer(size_t idx) const;
 
   std::vector<double> operator ()(const std::vector<double>& inputs);
