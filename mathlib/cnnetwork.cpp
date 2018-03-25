@@ -23,21 +23,26 @@ __kernel void neuron_atom(__global int3* nodes,
 
 class cnnetwork::impl {
  public:
-    impl();
+    impl(size_t inputs, std::initializer_list<cnlayer>&& layers);
 
-    void add_input_layer(size_t inputs);
-    void add_layer(const cnlayer& layer);
-
-    size_t layer_num() const {
-        return layers_.size();
+    size_t inputs_num() const {
+        return inputs_;
     }
-    cnlayer get_layer(size_t idx) const;
+    size_t layer_num() const {
+        return layers_desc_.size();
+    }
+    const cnlayer& get_layer(size_t idx) const {
+        return layers_desc_[idx];
+    }
 
  private:
+    void make_input_layer(size_t inputs);
+    void make_layer(const cnlayer& layer);
+
     struct cllayer {
-        const cl::Buffer& inputs;
+        cl::Buffer const& inputs;
         cl::Buffer nodes;  // neurons description
-        size_t weights_stride;
+        const size_t weights_stride;
         cl::Buffer weights;
         cl::Buffer mapping;
         cl::Buffer inter_outputs;
@@ -46,27 +51,29 @@ class cnnetwork::impl {
 
     using clnode = cl_int3;  // x -type, y -number of synapses, z -use bias
 
-    cl::Context context_ = cl::Context::getDefault();
+    const size_t inputs_;
+    const std::vector<cnlayer> layers_desc_;
+
+    cl::Context context_ = cl::Context(CL_DEVICE_TYPE_GPU);
     cl::CommandQueue cmd_queue_;
     cl::Buffer input_buf_;
     std::vector<cllayer> layers_;
 };
 
 cnnetwork::cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers)
-    : impl_(std::make_unique<cnnetwork::impl>()) {
-    impl_->add_input_layer(inputs);
-    for (auto&& l : layers) {
-        impl_->add_layer(l);
-    }
-}
+    : impl_(std::make_unique<cnnetwork::impl>(inputs, std::move(layers))) {}
 
 cnnetwork::~cnnetwork() = default;
+
+size_t cnnetwork::inputs_num() const {
+    return impl_->inputs_num();
+}
 
 size_t cnnetwork::layer_num() const {
     return impl_->layer_num();
 }
 
-cnlayer cnnetwork::layer(size_t idx) const {
+cnlayer cnnetwork::layer_desc(size_t idx) const {
     return impl_->get_layer(idx);
 }
 
@@ -74,29 +81,35 @@ std::vector<double> cnnetwork::operator()(const std::vector<double>& /*inputs*/)
     return std::vector<double>();
 }
 
-cnnetwork::impl::impl() {
+cnnetwork::impl::impl(size_t inputs, std::initializer_list<cnlayer>&& layers)
+    : inputs_(inputs), layers_desc_(std::move(layers)) {
     const auto devs = context_.getInfo<CL_CONTEXT_DEVICES>();
-    if (devs.size() == 1) {
+    if (!devs.empty()) {
         const auto& dev = devs.front();
         if (!(dev.getInfo<CL_DEVICE_TYPE>() & CL_DEVICE_TYPE_GPU) || !dev.getInfo<CL_DEVICE_DOUBLE_FP_CONFIG>()) {
             throw std::logic_error("OpenCL device is unsuitable");
         }
     } else {
-        throw std::logic_error("OpenCL device has not been found");
+        throw std::logic_error("OpenCL GPU-device has not been found");
     }
     cl::CommandQueue qcmd(context_, devs.front());
     std::swap(cmd_queue_, qcmd);
+
+    make_input_layer(inputs);
+    for (const auto& l : layers_desc_) {
+        make_layer(l);
+    }
 
     // const std::string src{clprogram_src};
     // cl::Program prog(src);
 }
 
-void cnnetwork::impl::add_input_layer(size_t inputs) {
+void cnnetwork::impl::make_input_layer(size_t inputs) {
     cl::Buffer buf(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * inputs);
     std::swap(input_buf_, buf);
 }
 
-void cnnetwork::impl::add_layer(const cnlayer& layer) {
+void cnnetwork::impl::make_layer(const cnlayer& layer) {
     {
         // Finding maximum number of synapses including the bias
         size_t max_w = 0;
@@ -130,8 +143,8 @@ void cnnetwork::impl::add_layer(const cnlayer& layer) {
             if (node.map.size() != node.neuron.synapses) {
                 throw std::logic_error("Mapping size must be equal number of synapses");
             }
+            const size_t offset = i * curr_cllayer.weights_stride;
             for (size_t w = 0; w < node.neuron.synapses; ++w) {
-                const size_t offset = i * curr_cllayer.weights_stride;
                 clweights[offset + 1 + w] = 1;  // the bias is the first always and zero by default
                 clmap[offset + w] = node.map[w];
             }
@@ -141,14 +154,6 @@ void cnnetwork::impl::add_layer(const cnlayer& layer) {
                                       clweights.data());
         cmd_queue_.enqueueWriteBuffer(curr_cllayer.mapping, CL_TRUE, 0, sizeof(cl_int) * clmap.size(), clmap.data());
     }
-}
-
-cnlayer cnnetwork::impl::get_layer(size_t /*idx*/) const {
-    // const cllayer& curr_cllayer = layers_[idx];
-    // cnlayer layer;
-    // layer.reserve(curr_cllayer.nodes.);
-
-    return cnlayer();
 }
 
 }  // namespace mathlib

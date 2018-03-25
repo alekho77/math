@@ -11,7 +11,6 @@ class cnnetwork_test_fixture : public ::testing::Test {
     const cnneuron neuron2 = {cnfunction::sigmoid, 2, true};
     const cnlayer layer1 = {cnnode{neuron2, {0, 2}}, cnnode{neuron1, {0, 1, 2}}, cnnode{neuron2, {2, 0}}};
 
-    // using network1_t = nnetwork<InputLayer, OutputLayer, Map>;
     // static_assert(network1_t::num_layers == 1, "Wrong layers number");
     // static_assert(std::is_same<network_layer_t<0, network1_t>, OutputLayer>::value, "Wrong layer type");
 
@@ -24,6 +23,13 @@ class cnnetwork_test_fixture : public ::testing::Test {
 TEST_F(cnnetwork_test_fixture, construct) {
     {
         cnnetwork network1(inputs, {layer1});
+
+        ASSERT_EQ(1, network1.layer_num());
+        ASSERT_EQ(inputs, network1.inputs_num());
+        ASSERT_EQ(layer1.size(), network1.layer_desc(0).size());
+        for (size_t i = 0; i < network1.layer_desc(0).size(); i++) {
+            ASSERT_EQ(layer1[i], network1.layer_desc(0)[i]);
+        }
 
         // auto res1 = network1(-1, 0, 1);
         // ASSERT_TRUE(res1.size() == 3);

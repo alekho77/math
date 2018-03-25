@@ -17,11 +17,17 @@ struct cnneuron {
     cnfunction type;
     size_t synapses;
     bool bias;
+    inline bool operator==(const cnneuron& that) const {
+        return this->type == that.type && this->synapses == that.synapses && this->bias == that.bias;
+    }
 };
 
 struct cnnode {
     cnneuron neuron;
     std::vector<int> map;
+    inline bool operator==(const cnnode& that) const {
+        return this->neuron == that.neuron && this->map == that.map;
+    }
 };
 
 using cnlayer = std::vector<cnnode>;
@@ -32,8 +38,9 @@ class cnnetwork {
     cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers);
     ~cnnetwork();
 
+    size_t inputs_num() const;
     size_t layer_num() const;
-    cnlayer layer(size_t idx) const;
+    cnlayer layer_desc(size_t idx) const;
 
     std::vector<double> operator()(const std::vector<double>& inputs);
 
