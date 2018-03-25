@@ -31,9 +31,9 @@ TEST_F(cnnetwork_test_fixture, construct) {
             ASSERT_EQ(layer1[i], network1.layer_desc(0)[i]);
         }
 
-        // auto res1 = network1(-1, 0, 1);
-        // ASSERT_TRUE(res1.size() == 3);
-        // EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), res1);
+        auto res1 = network1(-1, 0, 1);
+        ASSERT_EQ(layer1.size(), res1.size());
+        EXPECT_EQ((std::vector<double>{0.5, 0.5, 0.5}), res1);
 
         // const auto& layer1 = network1.layer<0>();
 

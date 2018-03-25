@@ -15,31 +15,34 @@ __kernel void neuron_atom(__global int3* nodes,
                           __global int* map,
                           __global double* inters,
                           __global double* outputs) {
-  size_t neuron_id = get_global_id(0);
-  size_t weight_id = get_global_id(1);
+  const size_t neuron_id = get_global_id(0);
+  const size_t weight_id = get_global_id(1);
 }
 )";
 }
 
 class cnnetwork::impl {
  public:
-    impl(size_t inputs, std::initializer_list<cnlayer>&& layers);
+    impl(size_t inputs, std::vector<cnlayer>&& layers);
 
     size_t inputs_num() const {
         return inputs_;
     }
     size_t layer_num() const {
-        return layers_desc_.size();
+        return layers_.size();
     }
     const cnlayer& get_layer(size_t idx) const {
-        return layers_desc_[idx];
+        return layers_[idx].desc;
     }
+
+    std::vector<cl_double> exec(const std::vector<cl_double>& inputs);
 
  private:
     void make_input_layer(size_t inputs);
-    void make_layer(const cnlayer& layer);
+    void make_layer(cnlayer&& layer);
 
     struct cllayer {
+        cnlayer desc;
         cl::Buffer const& inputs;
         cl::Buffer nodes;  // neurons description
         const size_t weights_stride;
@@ -52,16 +55,21 @@ class cnnetwork::impl {
     using clnode = cl_int3;  // x -type, y -number of synapses, z -use bias
 
     const size_t inputs_;
-    const std::vector<cnlayer> layers_desc_;
 
     cl::Context context_ = cl::Context(CL_DEVICE_TYPE_GPU);
     cl::CommandQueue cmd_queue_;
+    cl::Program prog_;
+    cl::Kernel kernel_;
     cl::Buffer input_buf_;
     std::vector<cllayer> layers_;
 };
 
 cnnetwork::cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers)
-    : impl_(std::make_unique<cnnetwork::impl>(inputs, std::move(layers))) {}
+    : impl_(std::make_unique<cnnetwork::impl>(inputs, std::move(layers))) {
+    if (impl_->layer_num() == 0) {
+        throw std::logic_error("Neural network must have at least one layer");
+    }
+}
 
 cnnetwork::~cnnetwork() = default;
 
@@ -77,12 +85,12 @@ cnlayer cnnetwork::layer_desc(size_t idx) const {
     return impl_->get_layer(idx);
 }
 
-std::vector<double> cnnetwork::operator()(const std::vector<double>& /*inputs*/) {
-    return std::vector<double>();
+std::vector<double> cnnetwork::operator()(const std::vector<double>& inputs) {
+    static_assert(std::is_same<double, cl_double>::value, "OpenCL double type does not match system double type.");
+    return impl_->exec(inputs);
 }
 
-cnnetwork::impl::impl(size_t inputs, std::initializer_list<cnlayer>&& layers)
-    : inputs_(inputs), layers_desc_(std::move(layers)) {
+cnnetwork::impl::impl(size_t inputs, std::vector<cnlayer>&& layers) : inputs_(inputs) {
     const auto devs = context_.getInfo<CL_CONTEXT_DEVICES>();
     if (!devs.empty()) {
         const auto& dev = devs.front();
@@ -96,12 +104,55 @@ cnnetwork::impl::impl(size_t inputs, std::initializer_list<cnlayer>&& layers)
     std::swap(cmd_queue_, qcmd);
 
     make_input_layer(inputs);
-    for (const auto& l : layers_desc_) {
-        make_layer(l);
+    for (auto&& l : layers) {
+        make_layer(std::move(l));
     }
 
-    // const std::string src{clprogram_src};
-    // cl::Program prog(src);
+    cl_int err;
+    cl::Program prog(context_, clprogram_src, true, &err);
+    if (err != CL_SUCCESS) {
+        throw std::logic_error("OpenCL programm has not been built with error code: " + std::to_string(err));
+    }
+    std::swap(prog_, prog);
+    cl::Kernel kernel(prog_, "neuron_atom", &err);
+    if (err != CL_SUCCESS) {
+        throw std::logic_error("OpenCL kernel has not been created with error code: " + std::to_string(err));
+    }
+    std::swap(kernel_, kernel);
+}
+
+std::vector<cl_double> cnnetwork::impl::exec(const std::vector<cl_double>& inputs) {
+    {
+        auto err =
+            cmd_queue_.enqueueWriteBuffer(input_buf_, CL_TRUE, 0, sizeof(cl_double) * inputs.size(), inputs.data());
+        if (err != CL_SUCCESS) {
+            throw std::logic_error("OpenCL inputs buffer has not been written with error code: " + std::to_string(err));
+        }
+    }
+    {
+        for (auto& layer : layers_) {
+            const cl::NDRange range(layer.desc.size(), layer.weights_stride);
+            kernel_.setArg(0, layer.nodes);
+            kernel_.setArg(1, layer.inputs);
+            kernel_.setArg(2, layer.weights);
+            kernel_.setArg(3, layer.mapping);
+            kernel_.setArg(4, layer.inter_outputs);
+            kernel_.setArg(5, layer.outputs);
+            auto err = cmd_queue_.enqueueNDRangeKernel(kernel_, cl::NDRange(0, 0), range);
+            if (err != CL_SUCCESS) {
+                throw std::logic_error("OpenCL kernel has not been executed with error code: " + std::to_string(err));
+            }
+        }
+    }
+    std::vector<cl_double> result(layers_.back().desc.size());
+    {
+        auto err = cmd_queue_.enqueueReadBuffer(layers_.back().outputs, CL_TRUE, 0,
+                                                sizeof(cl_double) * layers_.back().desc.size(), result.data());
+        if (err != CL_SUCCESS) {
+            throw std::logic_error("OpenCL outputs buffer has not been read with error code: " + std::to_string(err));
+        }
+    }
+    return result;
 }
 
 void cnnetwork::impl::make_input_layer(size_t inputs) {
@@ -109,7 +160,8 @@ void cnnetwork::impl::make_input_layer(size_t inputs) {
     std::swap(input_buf_, buf);
 }
 
-void cnnetwork::impl::make_layer(const cnlayer& layer) {
+void cnnetwork::impl::make_layer(cnlayer&& layer) {
+    const size_t layer_size = layer.size();
     {
         // Finding maximum number of synapses including the bias
         size_t max_w = 0;
@@ -121,22 +173,21 @@ void cnnetwork::impl::make_layer(const cnlayer& layer) {
         }
         // Creating all OpenCL objects that are necessary for presentation of the layer.
         const size_t w_stride = nearest_upper_pow2(max_w);
-        layers_.emplace_back(
-            cllayer{layers_.empty() ? input_buf_ : layers_.back().outputs,
-                    cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(clnode) * layer.size()), w_stride,
-                    cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * w_stride * layer.size()),
-                    cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_int) * w_stride * layer.size()),
-                    cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * w_stride * layer.size()),
-                    cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * layer.size())});
+        layers_.emplace_back(cllayer{std::move(layer), layers_.empty() ? input_buf_ : layers_.back().outputs,
+                                     cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(clnode) * layer_size), w_stride,
+                                     cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * w_stride * layer_size),
+                                     cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_int) * w_stride * layer_size),
+                                     cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * w_stride * layer_size),
+                                     cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * layer_size)});
     }
     {
         // Initializing layer nodes data.
         cllayer& curr_cllayer = layers_.back();
-        std::vector<clnode> clnodes(layer.size(), clnode{0});
-        std::vector<cl_double> clweights(curr_cllayer.weights_stride * layer.size(), cl_double{0});
-        std::vector<cl_int> clmap(curr_cllayer.weights_stride * layer.size(), cl_int{0});
-        for (size_t i = 0; i < layer.size(); ++i) {
-            const cnnode& node = layer[i];
+        std::vector<clnode> clnodes(layer_size, clnode{0});
+        std::vector<cl_double> clweights(curr_cllayer.weights_stride * layer_size, cl_double{0});
+        std::vector<cl_int> clmap(curr_cllayer.weights_stride * layer_size, cl_int{0});
+        for (size_t i = 0; i < layer_size; ++i) {
+            const cnnode& node = curr_cllayer.desc[i];
             clnodes[i].x = static_cast<cl_int>(node.neuron.type);
             clnodes[i].y = static_cast<cl_int>(node.neuron.synapses);
             clnodes[i].z = node.neuron.bias ? CL_TRUE : CL_FALSE;
@@ -149,10 +200,30 @@ void cnnetwork::impl::make_layer(const cnlayer& layer) {
                 clmap[offset + w] = node.map[w];
             }
         }
-        cmd_queue_.enqueueWriteBuffer(curr_cllayer.nodes, CL_TRUE, 0, sizeof(clnode) * clnodes.size(), clnodes.data());
-        cmd_queue_.enqueueWriteBuffer(curr_cllayer.weights, CL_TRUE, 0, sizeof(cl_double) * clweights.size(),
-                                      clweights.data());
-        cmd_queue_.enqueueWriteBuffer(curr_cllayer.mapping, CL_TRUE, 0, sizeof(cl_int) * clmap.size(), clmap.data());
+        {
+            auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.nodes, CL_TRUE, 0, sizeof(clnode) * clnodes.size(),
+                                                     clnodes.data());
+            if (err != CL_SUCCESS) {
+                throw std::logic_error("OpenCL nodes buffer has not been written with error code: " +
+                                       std::to_string(err));
+            }
+        }
+        {
+            auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.weights, CL_TRUE, 0,
+                                                     sizeof(cl_double) * clweights.size(), clweights.data());
+            if (err != CL_SUCCESS) {
+                throw std::logic_error("OpenCL weights buffer has not been written with error code: " +
+                                       std::to_string(err));
+            }
+        }
+        {
+            auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.mapping, CL_TRUE, 0, sizeof(cl_int) * clmap.size(),
+                                                     clmap.data());
+            if (err != CL_SUCCESS) {
+                throw std::logic_error("OpenCL mapping buffer has not been written with error code: " +
+                                       std::to_string(err));
+            }
+        }
     }
 }
 
