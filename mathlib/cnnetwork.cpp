@@ -9,14 +9,29 @@ namespace mathlib {
 
 namespace {
 constexpr char clprogram_src[] = R"(
-__kernel void neuron_atom(__global int3* nodes,
-                          __global double* inputs,
-                          __global double* weights,
-                          __global int* map,
+double sigmoid(double x) {
+    return 1 / (1 + exp(-x));
+}
+
+__kernel void neuron_atom(__global const int3* nodes,
+                          __global const double* inputs,
+                          __global const double* weights,
+                          __global const int* map,
                           __global double* inters,
-                          __global double* outputs) {
-  const size_t neuron_id = get_global_id(0);
-  const size_t weight_id = get_global_id(1);
+                          __global double* outputs,
+                          const int weights_stride) {
+    const size_t neuron_id = get_global_id(0);
+    const size_t weight_id = get_global_id(1);
+    const size_t idx = neuron_id * weights_stride + weight_id;
+    inters[idx] = inputs[map[idx]] * weights[idx + 1];
+    for (int i = 2; i <= weights_stride; i *= 2) {
+        if ((weight_id % i) != 0) {
+            return;
+        }
+        inters[idx] += inters[idx + i / 2];
+    }
+    // until here, only weight_id=0 can reach
+    outputs[neuron_id] = sigmoid(inters[idx] + weights[idx]);  // taking into account the bias
 }
 )";
 }
@@ -45,7 +60,7 @@ class cnnetwork::impl {
         cnlayer desc;
         cl::Buffer const& inputs;
         cl::Buffer nodes;  // neurons description
-        const size_t weights_stride;
+        const cl_int weights_stride;
         cl::Buffer weights;
         cl::Buffer mapping;
         cl::Buffer inter_outputs;
@@ -138,6 +153,7 @@ std::vector<cl_double> cnnetwork::impl::exec(const std::vector<cl_double>& input
             kernel_.setArg(3, layer.mapping);
             kernel_.setArg(4, layer.inter_outputs);
             kernel_.setArg(5, layer.outputs);
+            kernel_.setArg(6, layer.weights_stride);
             auto err = cmd_queue_.enqueueNDRangeKernel(kernel_, cl::NDRange(0, 0), range);
             if (err != CL_SUCCESS) {
                 throw std::logic_error("OpenCL kernel has not been executed with error code: " + std::to_string(err));
@@ -162,6 +178,7 @@ void cnnetwork::impl::make_input_layer(size_t inputs) {
 
 void cnnetwork::impl::make_layer(cnlayer&& layer) {
     const size_t layer_size = layer.size();
+    const size_t input_size = layers_.empty() ? inputs_ : layers_.back().desc.size();
     {
         // Finding maximum number of synapses including the bias
         size_t max_w = 0;
@@ -174,7 +191,8 @@ void cnnetwork::impl::make_layer(cnlayer&& layer) {
         // Creating all OpenCL objects that are necessary for presentation of the layer.
         const size_t w_stride = nearest_upper_pow2(max_w);
         layers_.emplace_back(cllayer{std::move(layer), layers_.empty() ? input_buf_ : layers_.back().outputs,
-                                     cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(clnode) * layer_size), w_stride,
+                                     cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(clnode) * layer_size),
+                                     static_cast<cl_int>(w_stride),
                                      cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * w_stride * layer_size),
                                      cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_int) * w_stride * layer_size),
                                      cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * w_stride * layer_size),
@@ -197,6 +215,9 @@ void cnnetwork::impl::make_layer(cnlayer&& layer) {
             const size_t offset = i * curr_cllayer.weights_stride;
             for (size_t w = 0; w < node.neuron.synapses; ++w) {
                 clweights[offset + 1 + w] = 1;  // the bias is the first always and zero by default
+                if (node.map[w] < 0 || node.map[w] >= input_size) {
+                    throw std::logic_error("Mapping index must be reference to one of inputs");
+                }
                 clmap[offset + w] = node.map[w];
             }
         }
