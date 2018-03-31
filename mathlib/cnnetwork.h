@@ -42,6 +42,11 @@ class cnnetwork {
     size_t layer_num() const;
     cnlayer layer_desc(size_t idx) const;
 
+    std::vector<double> weights(size_t layer, size_t neuron) const;
+    void set_weights(size_t layer, size_t neuron, std::vector<double> weights);
+    double bias(size_t layer, size_t neuron) const;
+    void set_bias(size_t layer, size_t neuron, double bias) const;
+
     std::vector<double> operator()(const std::vector<double>& inputs);
 
     template <typename... Args>

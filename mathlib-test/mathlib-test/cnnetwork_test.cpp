@@ -1,4 +1,5 @@
 #include "math/mathlib/cnnetwork.h"
+#include "math/mathlib/neuron.h"
 
 #include <gtest/gtest.h>
 
@@ -10,14 +11,7 @@ class cnnetwork_test_fixture : public ::testing::Test {
     const cnneuron neuron1 = {cnfunction::sigmoid, 3, true};
     const cnneuron neuron2 = {cnfunction::sigmoid, 2, true};
     const cnlayer layer1 = {cnnode{neuron2, {0, 2}}, cnnode{neuron1, {0, 1, 2}}, cnnode{neuron2, {2, 0}}};
-
-    // static_assert(network1_t::num_layers == 1, "Wrong layers number");
-    // static_assert(std::is_same<network_layer_t<0, network1_t>, OutputLayer>::value, "Wrong layer type");
-
-    // using network2_t = nnetwork<network1_t, std::tuple<Neuron1>, type_pack<index_pack<1, 2, 0>>>;
-    // static_assert(network2_t::num_layers == 2, "Wrong layers number");
-    // static_assert(std::is_same<network_layer_t<0, network2_t>, OutputLayer>::value, "Wrong layer type");
-    // static_assert(std::is_same<network_layer_t<1, network2_t>, std::tuple<Neuron1>>::value, "Wrong layer type");
+    const cnlayer layer2 = {cnnode{neuron1, {1, 2, 0}}};
 };
 
 TEST_F(cnnetwork_test_fixture, construct) {
@@ -31,55 +25,79 @@ TEST_F(cnnetwork_test_fixture, construct) {
             ASSERT_EQ(layer1[i], network1.layer_desc(0)[i]);
         }
 
-        auto res1 = network1(-1, 0, 1);
-        ASSERT_EQ(layer1.size(), res1.size());
-        EXPECT_EQ((std::vector<double>{0.5, 0.5, 0.5}), res1);
+        for (int i = 0; i < 1000; i++) {
+            auto res = network1(-1, 0, 1);
+            ASSERT_EQ(layer1.size(), res.size());
+            EXPECT_EQ((std::vector<double>{0.5, 0.5, 0.5}), res);
+        }
 
-        // const auto& layer1 = network1.layer<0>();
+        EXPECT_EQ(0, network1.bias(0, 0));
+        EXPECT_EQ(0, network1.bias(0, 1));
+        EXPECT_EQ(0, network1.bias(0, 2));
 
-        // EXPECT_EQ(0, std::get<0>(layer1).bias());
-        // EXPECT_EQ(0, std::get<1>(layer1).bias());
-        // EXPECT_EQ(0, std::get<2>(layer1).bias());
-
-        // EXPECT_EQ(std::make_tuple(1, 1), std::get<0>(layer1).weights());
-        // EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<1>(layer1).weights());
-        // EXPECT_EQ(std::make_tuple(1, 1), std::get<2>(layer1).weights());
+        EXPECT_EQ((std::vector<double>{1, 1}), network1.weights(0, 0));
+        EXPECT_EQ((std::vector<double>{1, 1, 1}), network1.weights(0, 1));
+        EXPECT_EQ((std::vector<double>{1, 1}), network1.weights(0, 2));
     }
     {
-        // const network2_t network2;
-        // auto res2 = network2(1, 0, -1);
+        cnnetwork network2(inputs, {layer1, layer2});
 
-        // EXPECT_EQ(std::make_tuple(SIGMOID<double>()(3 * 0.5)), res2);
+        ASSERT_EQ(2, network2.layer_num());
+        ASSERT_EQ(inputs, network2.inputs_num());
+        ASSERT_EQ(layer1.size(), network2.layer_desc(0).size());
+        ASSERT_EQ(layer2.size(), network2.layer_desc(1).size());
+        for (size_t i = 0; i < network2.layer_desc(0).size(); i++) {
+            ASSERT_EQ(layer1[i], network2.layer_desc(0)[i]);
+        }
+        for (size_t i = 0; i < network2.layer_desc(1).size(); i++) {
+            ASSERT_EQ(layer2[i], network2.layer_desc(1)[i]);
+        }
 
-        // const auto& layer1 = network2.layer<0>();
+        for (int i = 0; i < 1000; i++) {
+            auto res = network2(1, 0, -1);
+            ASSERT_EQ(layer2.size(), res.size());
+            EXPECT_EQ((std::vector<double>{SIGMOID<double>()(3 * 0.5)}), res);
+        }
 
-        // EXPECT_EQ(0, std::get<0>(layer1).bias());
-        // EXPECT_EQ(0, std::get<1>(layer1).bias());
-        // EXPECT_EQ(0, std::get<2>(layer1).bias());
+        EXPECT_EQ(0, network2.bias(0, 0));
+        EXPECT_EQ(0, network2.bias(0, 1));
+        EXPECT_EQ(0, network2.bias(0, 2));
 
-        // EXPECT_EQ(std::make_tuple(1, 1), std::get<0>(layer1).weights());
-        // EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<1>(layer1).weights());
-        // EXPECT_EQ(std::make_tuple(1, 1), std::get<2>(layer1).weights());
+        EXPECT_EQ((std::vector<double>{1, 1}), network2.weights(0, 0));
+        EXPECT_EQ((std::vector<double>{1, 1, 1}), network2.weights(0, 1));
+        EXPECT_EQ((std::vector<double>{1, 1}), network2.weights(0, 2));
 
-        // const auto& layer2 = network2.layer<1>();
-
-        // EXPECT_EQ(0, std::get<0>(layer2).bias());
-        // EXPECT_EQ(std::make_tuple(1, 1, 1), std::get<0>(layer2).weights());
+        EXPECT_EQ(0, network2.bias(1, 0));
+        EXPECT_EQ((std::vector<double>{1, 1, 1}), network2.weights(1, 0));
     }
 }
 
 TEST_F(cnnetwork_test_fixture, topology) {
     {
-        // network1_t network1;
-        // auto res1 = network1(-1, 0, 1);
-        // EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), res1);
+        cnnetwork network1(inputs, {layer1});
 
-        // auto& layer1 = network1.layer<0>();
-        // std::get<0>(layer1).set_weights(-3, 1);
-        // std::get<1>(layer1).set_weights(-1, -1, 1);
-        // std::get<2>(layer1).set_weights(1, -3);
+        for (int i = 0; i < 1000; i++) {
+            EXPECT_EQ((std::vector<double>{0.5, 0.5, 0.5}), network1(-1, 0, 1));
+        }
 
-        // EXPECT_EQ(std::make_tuple(0.5, 0.5, 0.5), network1(1, 2, 3));
+        network1.set_weights(0, 0, std::vector<double>{-3, 2});
+        network1.set_weights(0, 1, std::vector<double>{-1, -2, 1});
+        network1.set_weights(0, 2, std::vector<double>{1, -4});
+        network1.set_bias(0, 0, -3);
+        network1.set_bias(0, 1, 2);
+        network1.set_bias(0, 2, 1);
+
+        ASSERT_EQ(-3, network1.bias(0, 0));
+        ASSERT_EQ(2, network1.bias(0, 1));
+        ASSERT_EQ(1, network1.bias(0, 2));
+
+        ASSERT_EQ((std::vector<double>{-3, 2}), network1.weights(0, 0));
+        ASSERT_EQ((std::vector<double>{-1, -2, 1}), network1.weights(0, 1));
+        ASSERT_EQ((std::vector<double>{1, -4}), network1.weights(0, 2));
+
+        for (int i = 0; i < 1000; i++) {
+            EXPECT_EQ((std::vector<double>{0.5, 0.5, 0.5}), network1(1, 2, 3));
+        }
     }
 }
 

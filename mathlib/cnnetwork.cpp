@@ -20,16 +20,28 @@ __kernel void neuron_atom(__global const int3* nodes,
                           __global double* inters,
                           __global double* outputs,
                           const int weights_stride) {
-    const size_t neuron_id = get_global_id(0);
-    const size_t weight_id = get_global_id(1);
-    const size_t idx = neuron_id * weights_stride + weight_id;
-    inters[idx] = inputs[map[idx]] * weights[idx + 1];
+    const int neuron_id = get_global_id(0);
+    const int weight_id = get_global_id(1);
+    const int idx = neuron_id * weights_stride + weight_id;
+
+    if (weight_id < nodes[neuron_id].y) {
+        inters[idx] = inputs[map[idx]] * weights[idx + 1];
+    } else {
+        inters[idx] = 0;
+    }
+
+    barrier(CLK_GLOBAL_MEM_FENCE);
+
     for (int i = 2; i <= weights_stride; i *= 2) {
         if ((weight_id % i) != 0) {
             return;
         }
+
         inters[idx] += inters[idx + i / 2];
+
+        barrier(CLK_GLOBAL_MEM_FENCE);
     }
+
     // until here, only weight_id=0 can reach
     outputs[neuron_id] = sigmoid(inters[idx] + weights[idx]);  // taking into account the bias
 }
@@ -50,6 +62,11 @@ class cnnetwork::impl {
         return layers_[idx].desc;
     }
 
+    std::vector<cl_double> weights(size_t layer, size_t neuron) const;
+    void set_weights(size_t layer, size_t neuron, std::vector<cl_double> weights);
+    cl_double bias(size_t layer, size_t neuron) const;
+    void set_bias(size_t layer, size_t neuron, cl_double bias) const;
+
     std::vector<cl_double> exec(const std::vector<cl_double>& inputs);
 
  private:
@@ -58,7 +75,7 @@ class cnnetwork::impl {
 
     struct cllayer {
         cnlayer desc;
-        cl::Buffer const& inputs;
+        cl::Buffer const inputs;
         cl::Buffer nodes;  // neurons description
         const cl_int weights_stride;
         cl::Buffer weights;
@@ -100,6 +117,22 @@ cnlayer cnnetwork::layer_desc(size_t idx) const {
     return impl_->get_layer(idx);
 }
 
+std::vector<double> cnnetwork::weights(size_t layer, size_t neuron) const {
+    return impl_->weights(layer, neuron);
+}
+
+void cnnetwork::set_weights(size_t layer, size_t neuron, std::vector<double> weights) {
+    impl_->set_weights(layer, neuron, weights);
+}
+
+double cnnetwork::bias(size_t layer, size_t neuron) const {
+    return impl_->bias(layer, neuron);
+}
+
+void cnnetwork::set_bias(size_t layer, size_t neuron, double bias) const {
+    impl_->set_bias(layer, neuron, bias);
+}
+
 std::vector<double> cnnetwork::operator()(const std::vector<double>& inputs) {
     static_assert(std::is_same<double, cl_double>::value, "OpenCL double type does not match system double type.");
     return impl_->exec(inputs);
@@ -134,6 +167,46 @@ cnnetwork::impl::impl(size_t inputs, std::vector<cnlayer>&& layers) : inputs_(in
         throw std::logic_error("OpenCL kernel has not been created with error code: " + std::to_string(err));
     }
     std::swap(kernel_, kernel);
+}
+
+std::vector<cl_double> cnnetwork::impl::weights(size_t l, size_t n) const {
+    const auto& layer = layers_[l];
+    std::vector<cl_double> buf(layer.desc[n].neuron.synapses);
+    auto err = cmd_queue_.enqueueReadBuffer(layer.weights, CL_TRUE, (n * layer.weights_stride + 1) * sizeof(cl_double),
+                                            buf.size() * sizeof(cl_double), buf.data());
+    if (err != CL_SUCCESS) {
+        throw std::logic_error("OpenCL weights buffer has not been read with error code: " + std::to_string(err));
+    }
+    return buf;
+}
+
+void cnnetwork::impl::set_weights(size_t l, size_t n, std::vector<cl_double> w) {
+    const auto& layer = layers_[l];
+    auto err = cmd_queue_.enqueueWriteBuffer(layer.weights, CL_TRUE, (n * layer.weights_stride + 1) * sizeof(cl_double),
+                                             w.size() * sizeof(cl_double), w.data());
+    if (err != CL_SUCCESS) {
+        throw std::logic_error("OpenCL weights buffer has not been written with error code: " + std::to_string(err));
+    }
+}
+
+cl_double cnnetwork::impl::bias(size_t l, size_t n) const {
+    const auto& layer = layers_[l];
+    cl_double buf{};
+    auto err = cmd_queue_.enqueueReadBuffer(layer.weights, CL_TRUE, (n * layer.weights_stride) * sizeof(cl_double),
+                                            sizeof(cl_double), &buf);
+    if (err != CL_SUCCESS) {
+        throw std::logic_error("OpenCL weights buffer has not been read with error code: " + std::to_string(err));
+    }
+    return buf;
+}
+
+void cnnetwork::impl::set_bias(size_t l, size_t n, cl_double b) const {
+    const auto& layer = layers_[l];
+    auto err = cmd_queue_.enqueueWriteBuffer(layer.weights, CL_TRUE, (n * layer.weights_stride) * sizeof(cl_double),
+                                             sizeof(cl_double), &b);
+    if (err != CL_SUCCESS) {
+        throw std::logic_error("OpenCL weights buffer has not been written with error code: " + std::to_string(err));
+    }
 }
 
 std::vector<cl_double> cnnetwork::impl::exec(const std::vector<cl_double>& inputs) {
