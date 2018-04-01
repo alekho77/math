@@ -1,3 +1,6 @@
 #include "cntrainer.h"
 
-namespace mathlib {}  // namespace mathlib
+namespace mathlib {
+cntrainer::cntrainer(cnnetwork& network) {}
+void cntrainer::randomize(double range, unsigned seed) {}
+}  // namespace mathlib

@@ -36,6 +36,7 @@ class cnnetwork {
  public:
     cnnetwork() = delete;
     cnnetwork(size_t inputs, std::initializer_list<cnlayer>&& layers);
+    cnnetwork(cnnetwork&&) = default;
     ~cnnetwork();
 
     size_t inputs_num() const;

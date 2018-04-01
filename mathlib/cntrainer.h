@@ -8,9 +8,15 @@
 
 #include "cnnetwork.h"
 
+#include <random>
+
 namespace mathlib {
 
-class cntrainer {};
+class cntrainer {
+ public:
+    explicit cntrainer(cnnetwork& network);
+    void randomize(double range = 1, unsigned seed = std::random_device()());
+};
 
 }  // namespace mathlib
 
