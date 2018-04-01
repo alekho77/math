@@ -140,6 +140,7 @@
     <ClInclude Include="approx.h" />
     <ClInclude Include="bp_trainer.h" />
     <ClInclude Include="cnnetwork.h" />
+    <ClInclude Include="cntrainer.h" />
     <ClInclude Include="derivative.h" />
     <ClInclude Include="fapprox.h" />
     <ClInclude Include="fmatrix.h" />
@@ -155,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cnnetwork.cpp" />
+    <ClCompile Include="cntrainer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

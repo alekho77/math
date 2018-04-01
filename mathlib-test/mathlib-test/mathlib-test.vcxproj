@@ -144,6 +144,7 @@
     <ClCompile Include="approx_test.cpp" />
     <ClCompile Include="bp_trainer_test.cpp" />
     <ClCompile Include="cnnetwork_test.cpp" />
+    <ClCompile Include="cntrainer_test.cpp" />
     <ClCompile Include="derivative_test.cpp" />
     <ClCompile Include="fapprox_test.cpp" />
     <ClCompile Include="fmatrix_test.cpp" />
