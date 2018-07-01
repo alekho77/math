@@ -141,8 +141,42 @@
     <ClCompile Include="cntrainer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="clprogram.h" />
     <ClInclude Include="cnnetwork.h" />
     <ClInclude Include="cntrainer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="program.cl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pushd $(ProjectDir)
+@echo static constexpr char clprogram_src[] = R^"(&gt; clprogram.h
+type program.cl&gt;&gt; clprogram.h
+@echo )^";&gt;&gt; clprogram.h
+popd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pushd $(ProjectDir)
+@echo static constexpr char clprogram_src[] = R^"(&gt; clprogram.h
+type program.cl&gt;&gt; clprogram.h
+@echo )^";&gt;&gt; clprogram.h
+popd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pushd $(ProjectDir)
+@echo static constexpr char clprogram_src[] = R^"(&gt; clprogram.h
+type program.cl&gt;&gt; clprogram.h
+@echo )^";&gt;&gt; clprogram.h
+popd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pushd $(ProjectDir)
+@echo static constexpr char clprogram_src[] = R^"(&gt; clprogram.h
+type program.cl&gt;&gt; clprogram.h
+@echo )^";&gt;&gt; clprogram.h
+popd</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)clprogram.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)clprogram.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)clprogram.h;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)clprogram.h;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Preparing clprogram.h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Preparing clprogram.h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Preparing clprogram.h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Preparing clprogram.h</Message>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
