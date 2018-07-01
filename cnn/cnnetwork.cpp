@@ -1,5 +1,5 @@
 #include "cnnetwork.h"
-#include "helpers.h"
+#include "math/mathlib/helpers.h"
 
 #include <CL/cl.hpp>
 
