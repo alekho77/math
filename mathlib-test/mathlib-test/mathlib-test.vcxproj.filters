@@ -54,11 +54,5 @@
     <ClCompile Include="trainingset_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cnnetwork_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cntrainer_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

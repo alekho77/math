@@ -1,4 +1,4 @@
-#include "math/mathlib/cnnetwork.h"
+#include "math/cnn/cnnetwork.h"
 #include "math/mathlib/neuron.h"
 
 #include <gtest/gtest.h>

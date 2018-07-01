@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{92715C9B-9AB6-4FE3-8DBE-92261695A3A6}</ProjectGuid>
-    <RootNamespace>mathlibtest</RootNamespace>
+    <ProjectGuid>{575A26B5-560A-472C-9632-EF168A804139}</ProjectGuid>
+    <RootNamespace>cnntest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -137,22 +137,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="approx_test.cpp" />
-    <ClCompile Include="bp_trainer_test.cpp" />
-    <ClCompile Include="derivative_test.cpp" />
-    <ClCompile Include="fapprox_test.cpp" />
-    <ClCompile Include="fmatrix_test.cpp" />
-    <ClCompile Include="helpers_test.cpp" />
-    <ClCompile Include="lsyseq_test.cpp" />
-    <ClCompile Include="matrix_test.cpp" />
-    <ClCompile Include="neuron_test.cpp" />
-    <ClCompile Include="nnetwork_test.cpp" />
-    <ClCompile Include="nonlsyseq_test.cpp" />
-    <ClCompile Include="static_indexes_test.cpp" />
-    <ClCompile Include="trainingset_test.cpp" />
+    <ClCompile Include="cnnetwork_test.cpp" />
+    <ClCompile Include="cntrainer_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\mathlib\math.vcxproj">
+    <ProjectReference Include="..\cnn\cnn.vcxproj">
+      <Project>{25ddaa3f-099b-414d-9018-c845b37970c8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\mathlib\math.vcxproj">
       <Project>{f39bd92c-b08f-4e7d-80ed-47eacd6f4ef7}</Project>
     </ProjectReference>
   </ItemGroup>

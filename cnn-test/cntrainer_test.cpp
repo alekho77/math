@@ -1,4 +1,4 @@
-#include "math/mathlib/cntrainer.h"
+#include "math/cnn/cntrainer.h"
 
 #include <gtest/gtest.h>
 
