@@ -3,14 +3,14 @@
     (c) 2018 Aleksey Khozin
 */
 
-#ifndef MATHLIB_CNTRAINER_H
-#define MATHLIB_CNTRAINER_H
+#ifndef CNN_CNTRAINER_H
+#define CNN_CNTRAINER_H
 
 #include "cnnetwork.h"
 
 #include <random>
 
-namespace mathlib {
+namespace cnn {
 
 class cntrainer {
  public:
@@ -18,6 +18,6 @@ class cntrainer {
     void randomize(double range = 1, unsigned seed = std::random_device()());
 };
 
-}  // namespace mathlib
+}  // namespace cnn
 
-#endif  // MATHLIB_CNTRAINER_H
+#endif  // CNN_CNTRAINER_H

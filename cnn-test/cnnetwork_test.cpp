@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-namespace mathlib {
+namespace cnn {
 
 class cnnetwork_test_fixture : public ::testing::Test {
  protected:
@@ -56,7 +56,7 @@ TEST_F(cnnetwork_test_fixture, construct) {
         for (int i = 0; i < 1000; i++) {
             auto res = network2(1, 0, -1);
             ASSERT_EQ(layer2.size(), res.size());
-            EXPECT_EQ((std::vector<double>{SIGMOID<double>()(3 * 0.5)}), res);
+            EXPECT_EQ((std::vector<double>{mathlib::SIGMOID<double>()(3 * 0.5)}), res);
         }
 
         EXPECT_EQ(0, network2.bias(0, 0));
@@ -101,4 +101,4 @@ TEST_F(cnnetwork_test_fixture, topology) {
     }
 }
 
-}  // namespace mathlib
+}  // namespace cnn

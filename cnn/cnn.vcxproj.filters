@@ -37,8 +37,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="program.cl">
+    <CustomBuild Include="program.cl">
       <Filter>CL</Filter>
-    </None>
+    </CustomBuild>
   </ItemGroup>
 </Project>

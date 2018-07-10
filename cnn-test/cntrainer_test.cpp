@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-namespace mathlib {
+namespace cnn {
 
 class cntrainer_test_fixture : public ::testing::Test {
  protected:
@@ -32,4 +32,4 @@ TEST_F(cntrainer_test_fixture, randomizer) {
     // trainer.randomize(10, 1977);
 }
 
-}  // namespace mathlib
+}  // namespace cnn
