@@ -171,7 +171,7 @@ std::vector<cl_double> cnnetwork::impl::exec(const std::vector<cl_double>& input
             kernel_.setArg(1, layer.inputs);
             kernel_.setArg(2, layer.weights);
             kernel_.setArg(3, layer.inter_outputs);
-            kernel_.setArg(5, layer.outputs);
+            kernel_.setArg(4, layer.outputs);
             auto err = cmd_queue_.enqueueNDRangeKernel(kernel_, cl::NDRange(0, 0), range);
             if (err != CL_SUCCESS) {
                 throw std::logic_error("OpenCL kernel has not been executed with error code: " + std::to_string(err));

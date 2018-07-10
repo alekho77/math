@@ -13,12 +13,10 @@ class cntrainer_test_fixture : public ::testing::Test {
     }
 
     const size_t inputs = 2;
-    const cnneuron neuron1 = {cnfunction::sigmoid, 2, true};
-    const cnneuron neuron2 = {cnfunction::sigmoid, 2, false};
-    const cnlayer hidden_layer = {cnnode{neuron2, {0, 1}}, cnnode{neuron2, {0, 1}}};
+    const cnlayer hidden_layer = {2, cnfunction::sigmoid, false};
 
-    cnnetwork network = cnnetwork(inputs, {hidden_layer, {cnnode{neuron1, {0, 1}}}});
-};
+    cnnetwork network = {inputs, {hidden_layer, {1, cnfunction::sigmoid, false}}};
+};  // namespace cnn
 
 TEST_F(cntrainer_test_fixture, randomizer) {
     std::mt19937 gen(1977);

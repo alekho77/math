@@ -6,7 +6,7 @@ __kernel void neuron_atom(const int stride,
     __global const double* inputs,
     __global const double* weights,
     __global double* inters,
-    __global double* outputs,
+    __global double* outputs
     ) {
     const int neuron_id = get_global_id(0);
     const int weight_id = get_global_id(1);
