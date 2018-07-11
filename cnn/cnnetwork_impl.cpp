@@ -20,8 +20,7 @@ cnnetwork_impl::cnnetwork_impl(size_t inputs, const std::vector<cnlayer>& layers
     } else {
         throw std::logic_error("OpenCL GPU-device has not been found");
     }
-    cl::CommandQueue qcmd(context_, devs.front());
-    std::swap(cmd_queue_, qcmd);
+    cmd_queue_ = cl::CommandQueue(context_, devs.front());
 
     auto stride = make_input_layer(inputs, layers[0].bias);
     for (size_t i = 0; i < (layers.size() - 1); ++i) {
@@ -30,16 +29,14 @@ cnnetwork_impl::cnnetwork_impl(size_t inputs, const std::vector<cnlayer>& layers
     make_layer(stride, layers.back(), false);
 
     cl_int err;
-    cl::Program prog(context_, clprogram_src, true, &err);
+    prog_ = cl::Program(context_, clprogram_src, true, &err);
     if (err != CL_SUCCESS) {
         throw std::logic_error("OpenCL programm has not been built with error code: " + std::to_string(err));
     }
-    std::swap(prog_, prog);
-    cl::Kernel kernel(prog_, "neuron_atom", &err);
+    kernel_ = cl::Kernel(prog_, "neuron_atom", &err);
     if (err != CL_SUCCESS) {
         throw std::logic_error("OpenCL kernel has not been created with error code: " + std::to_string(err));
     }
-    std::swap(kernel_, kernel);
 }
 
 std::vector<cl_double> cnnetwork_impl::weights(size_t l, size_t n) const {
@@ -115,8 +112,7 @@ size_t cnnetwork_impl::weights_number(size_t l) const {
 
 size_t cnnetwork_impl::make_input_layer(size_t inputs, bool bias) {
     const size_t stride = mathlib::nearest_upper_pow2(inputs + (bias ? 1 : 0));
-    cl::Buffer buf(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * stride);
-    std::swap(input_buf_, buf);
+    input_buf_ = cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * stride);
     std::vector<cl_double> init_data(stride, cl_double{0});
     if (bias) {
         init_data[inputs] = 1.0;
