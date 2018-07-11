@@ -38,6 +38,8 @@ class cntrainer {
     double momentum() const;
     void set_momentum(double alpha);
 
+    std::vector<double> states(size_t layer) const;
+
  private:
     std::unique_ptr<cntrainer_impl> impl_;
 };

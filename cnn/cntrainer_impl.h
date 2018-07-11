@@ -24,14 +24,16 @@ class cntrainer_impl final {
     void randomize(cl_double range, unsigned seed);
 
     // Returns error before and after correction of weights
-    std::tuple<cl_double, cl_double> operator()(const std::vector<cl_double>& inputs,
-                                                const std::vector<cl_double>& desired_outputs);
+    std::tuple<cl_double, cl_double> exec(const std::vector<cl_double>& inputs,
+                                          const std::vector<cl_double>& desired_outputs);
 
     double learning_rate() const;
     void set_learning_rate(cl_double eta);
 
     double momentum() const;
     void set_momentum(cl_double alpha);
+
+    std::vector<cl_double> states(size_t layer) const;
 
  private:
     cnnetwork_impl& network_;
