@@ -19,13 +19,16 @@ struct cnlayer {
     bool bias;
 };
 
+class cnnetwork_impl;  // To hide OpenCL stuff
+
 class cnnetwork {
  public:
-    cnnetwork() = delete;
     cnnetwork(size_t inputs, const std::vector<cnlayer>& layers);
+    ~cnnetwork();
+
+    cnnetwork() = delete;
     cnnetwork(const cnnetwork&) = delete;
     cnnetwork(cnnetwork&&) = delete;
-    ~cnnetwork();
 
     size_t inputs_num() const;
     size_t layer_num() const;
@@ -43,8 +46,7 @@ class cnnetwork {
     }
 
  private:
-    class impl;
-    std::unique_ptr<impl> impl_;
+    std::unique_ptr<cnnetwork_impl> impl_;
 };
 
 }  // namespace cnn

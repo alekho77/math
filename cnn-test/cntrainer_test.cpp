@@ -26,7 +26,7 @@ TEST_F(cntrainer_test_fixture, randomizer) {
         values[i] = dis(gen);
     }
 
-    auto trainer = cntrainer(network);
+    cntrainer trainer(network);
     // trainer.randomize(10, 1977);
 }
 

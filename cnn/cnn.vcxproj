@@ -138,11 +138,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cnnetwork.cpp" />
+    <ClCompile Include="cnnetwork_impl.cpp" />
     <ClCompile Include="cntrainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clprogram.h" />
     <ClInclude Include="cnnetwork.h" />
+    <ClInclude Include="cnnetwork_impl.h" />
     <ClInclude Include="cntrainer.h" />
   </ItemGroup>
   <ItemGroup>
