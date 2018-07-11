@@ -81,18 +81,16 @@ std::vector<cl_double> cnnetwork_impl::exec(const std::vector<cl_double>& inputs
             throw std::logic_error("OpenCL inputs buffer has not been written with error code: " + std::to_string(err));
         }
     }
-    {
-        for (auto& layer : layers_) {
-            const cl::NDRange range(layer.desc.nodes, layer.stride);
-            kernel_.setArg(0, layer.stride);
-            kernel_.setArg(1, layer.inputs);
-            kernel_.setArg(2, layer.weights);
-            kernel_.setArg(3, layer.inter_outputs);
-            kernel_.setArg(4, layer.outputs);
-            auto err = cmd_queue_.enqueueNDRangeKernel(kernel_, cl::NDRange(0, 0), range);
-            if (err != CL_SUCCESS) {
-                throw std::logic_error("OpenCL kernel has not been executed with error code: " + std::to_string(err));
-            }
+    for (auto& layer : layers_) {
+        const cl::NDRange range(layer.desc.nodes, layer.stride);
+        kernel_.setArg(0, layer.stride);
+        kernel_.setArg(1, layer.inputs);
+        kernel_.setArg(2, layer.weights);
+        kernel_.setArg(3, layer.inter_outputs);
+        kernel_.setArg(4, layer.outputs);
+        auto err = cmd_queue_.enqueueNDRangeKernel(kernel_, cl::NDRange(0, 0), range);
+        if (err != CL_SUCCESS) {
+            throw std::logic_error("OpenCL kernel has not been executed with error code: " + std::to_string(err));
         }
     }
     std::vector<cl_double> result(layers_.back().desc.nodes);

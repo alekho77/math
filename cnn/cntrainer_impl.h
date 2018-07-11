@@ -36,7 +36,15 @@ class cntrainer_impl final {
     std::vector<cl_double> states(size_t layer) const;
 
  private:
+    void compute_deltas(const std::vector<cl_double>& desired_outputs);
+
+    struct train_layer {
+        cl::Buffer deltas;  // buffer with deltas
+    };
+
     cnnetwork_impl& network_;
+    cl::Buffer samples_buf_;
+    std::vector<train_layer> layers_;
 };
 
 }  // namespace cnn
