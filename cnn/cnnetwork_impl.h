@@ -15,9 +15,17 @@
 
 namespace cnn {
 
-class cnnetwork_impl {
+class cntrainer_impl;
+
+class cnnetwork_impl final {
+    friend cntrainer_impl;
+
  public:
     cnnetwork_impl(size_t inputs, const std::vector<cnlayer>& layers);
+
+    cnnetwork_impl() = delete;
+    cnnetwork_impl(const cnnetwork_impl&) = delete;
+    cnnetwork_impl(cnnetwork_impl&&) = delete;
 
     size_t inputs_num() const {
         return inputs_;

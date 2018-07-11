@@ -20,8 +20,11 @@ struct cnlayer {
 };
 
 class cnnetwork_impl;  // To hide OpenCL stuff
+class cntrainer;
 
 class cnnetwork {
+    friend cntrainer;
+
  public:
     cnnetwork(size_t inputs, const std::vector<cnlayer>& layers);
     ~cnnetwork();

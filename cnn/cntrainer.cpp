@@ -1,13 +1,9 @@
 #include "cntrainer.h"
+#include "cntrainer_impl.h"
 
 namespace cnn {
 
-class cntrainer::impl {
- public:
- private:
-};
-
-cntrainer::cntrainer(cnnetwork& network) : network_(network) {}
+cntrainer::cntrainer(cnnetwork& network) : impl_(std::make_unique<cntrainer_impl>(*network.impl_)) {}
 
 cntrainer::~cntrainer() = default;
 

@@ -11,8 +11,11 @@
 #include <random>
 #include <memory>
 #include <vector>
+#include <tuple>
 
 namespace cnn {
+
+class cntrainer_impl;  // To hide OpenCL stuff
 
 class cntrainer {
  public:
@@ -25,11 +28,18 @@ class cntrainer {
 
     void randomize(double range = 1, unsigned seed = std::random_device()());
 
- private:
-    class impl;
-    std::unique_ptr<impl> impl_;
+    // Returns error before and after correction of weights
+    std::tuple<double, double> operator()(const std::vector<double>& inputs,
+                                          const std::vector<double>& desired_outputs);
 
-    cnnetwork& network_;
+    double learning_rate() const;
+    void set_learning_rate(double eta);
+
+    double momentum() const;
+    void set_momentum(double alpha);
+
+ private:
+    std::unique_ptr<cntrainer_impl> impl_;
 };
 
 }  // namespace cnn

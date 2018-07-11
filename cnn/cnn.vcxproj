@@ -140,12 +140,14 @@
     <ClCompile Include="cnnetwork.cpp" />
     <ClCompile Include="cnnetwork_impl.cpp" />
     <ClCompile Include="cntrainer.cpp" />
+    <ClCompile Include="cntrainer_impl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clprogram.h" />
     <ClInclude Include="cnnetwork.h" />
     <ClInclude Include="cnnetwork_impl.h" />
     <ClInclude Include="cntrainer.h" />
+    <ClInclude Include="cntrainer_impl.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="program.cl">
