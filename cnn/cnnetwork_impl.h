@@ -49,7 +49,8 @@ class cnnetwork_impl final {
 
     struct cllayer {
         cnlayer desc;
-        cl_int stride;             // size of input buffer
+        size_t input_size;
+        size_t output_size;
         cl::Buffer inputs;         // reference to exist buffer
         cl::Buffer weights;        // weights of all nodes
         cl::Buffer inter_outputs;  // the same size like weights buffer

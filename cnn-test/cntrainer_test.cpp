@@ -45,4 +45,19 @@ TEST_F(cntrainer_test_fixture, forward_pass) {
     }
 }
 
+TEST_F(cntrainer_test_fixture, back_pass_deltas) {
+    cntrainer trainer(network);
+    trainer({1, 0}, {1});
+
+    const std::vector<std::vector<double>> expected_deltas = {{0.05281718211874069, -0.07341221444187529},
+                                                              {0.148097277843866}};
+    for (size_t l = 0; l < network.layer_num(); l++) {
+        const auto deltas = trainer.deltas(l);
+        ASSERT_EQ(expected_deltas[l].size(), deltas.size());
+        for (size_t n = 0; n < deltas.size(); n++) {
+            EXPECT_DOUBLE_EQ(expected_deltas[l][n], deltas[n]);
+        }
+    }
+}
+
 }  // namespace cnn

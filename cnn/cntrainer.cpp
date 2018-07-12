@@ -20,4 +20,8 @@ std::vector<double> cntrainer::states(size_t layer) const {
     return impl_->states(layer);
 }
 
+std::vector<double> cntrainer::deltas(size_t layer) const {
+    return impl_->deltas(layer);
+}
+
 }  // namespace cnn

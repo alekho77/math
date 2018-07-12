@@ -22,13 +22,13 @@ cnnetwork_impl::cnnetwork_impl(size_t inputs, const std::vector<cnlayer>& layers
     }
     cmd_queue_ = cl::CommandQueue(context_, devs.front());
 
-    auto stride = make_input_layer(inputs, layers[0].bias);
+    auto prev_output_size = make_input_layer(inputs, layers[0].bias);
     for (size_t i = 0; i < (layers.size() - 1); ++i) {
-        stride = make_layer(stride, layers[i], layers[i + 1].bias);
+        prev_output_size = make_layer(prev_output_size, layers[i], layers[i + 1].bias);
     }
-    make_layer(stride, layers.back(), false);
+    make_layer(prev_output_size, layers.back(), false);
 
-    cl_int err;
+    cl_int err{};
     prog_ = cl::Program(context_, clprogram_src, true, &err);
     if (err != CL_SUCCESS) {
         throw std::logic_error("OpenCL programm has not been built with error code: " + std::to_string(err));
@@ -43,7 +43,7 @@ std::vector<cl_double> cnnetwork_impl::weights(size_t l, size_t n) const {
     const auto& layer = layers_[l];
     const auto weights_num = weights_number(l);
     std::vector<cl_double> buf(weights_num);
-    auto err = cmd_queue_.enqueueReadBuffer(layer.weights, CL_TRUE, (n * layer.stride) * sizeof(cl_double),
+    auto err = cmd_queue_.enqueueReadBuffer(layer.weights, CL_TRUE, (n * layer.input_size) * sizeof(cl_double),
                                             weights_num * sizeof(cl_double), buf.data());
     if (err != CL_SUCCESS) {
         throw std::logic_error("OpenCL weights buffer has not been read with error code: " + std::to_string(err));
@@ -62,7 +62,7 @@ void cnnetwork_impl::set_weights(size_t l, size_t n, const std::vector<cl_double
         }
         throw std::logic_error(str.str());
     }
-    auto err = cmd_queue_.enqueueWriteBuffer(layer.weights, CL_TRUE, (n * layer.stride) * sizeof(cl_double),
+    auto err = cmd_queue_.enqueueWriteBuffer(layer.weights, CL_TRUE, (n * layer.input_size) * sizeof(cl_double),
                                              weights_num * sizeof(cl_double), w.data());
     if (err != CL_SUCCESS) {
         throw std::logic_error("OpenCL weights buffer has not been written with error code: " + std::to_string(err));
@@ -82,12 +82,11 @@ std::vector<cl_double> cnnetwork_impl::exec(const std::vector<cl_double>& inputs
         }
     }
     for (auto& layer : layers_) {
-        const cl::NDRange range(layer.desc.nodes, layer.stride);
-        kernel_.setArg(0, layer.stride);
-        kernel_.setArg(1, layer.inputs);
-        kernel_.setArg(2, layer.weights);
-        kernel_.setArg(3, layer.inter_outputs);
-        kernel_.setArg(4, layer.outputs);
+        const cl::NDRange range(layer.desc.nodes, layer.input_size);
+        kernel_.setArg(0, layer.inputs);
+        kernel_.setArg(1, layer.weights);
+        kernel_.setArg(2, layer.inter_outputs);
+        kernel_.setArg(3, layer.outputs);
         auto err = cmd_queue_.enqueueNDRangeKernel(kernel_, cl::NDRange(0, 0), range);
         if (err != CL_SUCCESS) {
             throw std::logic_error("OpenCL kernel has not been executed with error code: " + std::to_string(err));
@@ -109,30 +108,30 @@ size_t cnnetwork_impl::weights_number(size_t l) const {
 }
 
 size_t cnnetwork_impl::make_input_layer(size_t inputs, bool bias) {
-    const size_t stride = mathlib::nearest_upper_pow2(inputs + (bias ? 1 : 0));
-    input_buf_ = cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * stride);
-    std::vector<cl_double> init_data(stride, cl_double{0});
+    const size_t output_size = mathlib::nearest_upper_pow2(inputs + (bias ? 1 : 0));
+    input_buf_ = cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * output_size);
+    std::vector<cl_double> init_data(output_size, cl_double{0});
     if (bias) {
         init_data[inputs] = 1.0;
     }
-    auto err = cmd_queue_.enqueueWriteBuffer(input_buf_, CL_TRUE, 0, sizeof(cl_double) * stride, init_data.data());
+    auto err = cmd_queue_.enqueueWriteBuffer(input_buf_, CL_TRUE, 0, sizeof(cl_double) * output_size, init_data.data());
     if (err != CL_SUCCESS) {
         throw std::logic_error("OpenCL nodes buffer has not been written with error code: " + std::to_string(err));
     }
-    return stride;
+    return output_size;
 }
 
 size_t cnnetwork_impl::make_layer(size_t input_size, cnlayer layer, bool bias) {
     const size_t layer_size = layer.nodes;
-    const size_t output_stride = mathlib::nearest_upper_pow2(layer.nodes + (bias ? 1 : 0));
+    const size_t output_size = mathlib::nearest_upper_pow2(layer.nodes + (bias ? 1 : 0));
     // Creating all OpenCL objects that are necessary for presentation of the layer.
     layers_.push_back(cllayer{
-        std::move(layer),                                       // desc
-        static_cast<cl_int>(input_size),                        // stride of this layer
+        std::move(layer),  // desc
+        input_size, output_size,
         layers_.empty() ? input_buf_ : layers_.back().outputs,  // reference to input buffer
         cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * input_size * layer_size),   // weights buffer
         cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * layer_size),  // intermediate buffer
-        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * output_stride)});          // output buffer
+        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * output_size)});            // output buffer
     {
         // Initializing layer data.
         auto& curr_cllayer = layers_.back();
@@ -153,7 +152,7 @@ size_t cnnetwork_impl::make_layer(size_t input_size, cnlayer layer, bool bias) {
                                        std::to_string(err));
             }
         }
-        std::vector<cl_double> init_outputs(output_stride, cl_double{0});
+        std::vector<cl_double> init_outputs(output_size, cl_double{0});
         if (bias) {
             init_outputs[layer_size] = 1.0;
         }
@@ -166,7 +165,7 @@ size_t cnnetwork_impl::make_layer(size_t input_size, cnlayer layer, bool bias) {
             }
         }
     }
-    return output_stride;
+    return output_size;
 }
 
 }  // namespace cnn

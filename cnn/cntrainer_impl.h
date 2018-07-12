@@ -34,17 +34,19 @@ class cntrainer_impl final {
     void set_momentum(cl_double alpha);
 
     std::vector<cl_double> states(size_t layer) const;
+    std::vector<cl_double> deltas(size_t layer) const;
 
  private:
-    void compute_deltas(const std::vector<cl_double>& desired_outputs);
+    void compute_deltas(const std::vector<cl_double>& output_deltas);
 
     struct train_layer {
+        const cnnetwork_impl::cllayer& network_layer;
         cl::Buffer deltas;  // buffer with deltas
     };
 
     cnnetwork_impl& network_;
-    cl::Buffer samples_buf_;
     std::vector<train_layer> layers_;
+    cl::Kernel delta_kernel_;
 };
 
 }  // namespace cnn
