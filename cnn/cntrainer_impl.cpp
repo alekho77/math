@@ -8,8 +8,9 @@ namespace cnn {
 
 cntrainer_impl::cntrainer_impl(cnnetwork_impl& network) : network_(network) {
     for (const auto& l : network_.layers_) {
-        layers_.push_back(
-            train_layer{l, cl::Buffer(network_.context_, CL_MEM_READ_WRITE, sizeof(cl_double) * l.output_size)});
+        layers_.push_back(train_layer{
+            l, cl::Buffer(network_.context_, CL_MEM_READ_WRITE, sizeof(cl_double) * l.output_size),
+            cl::Buffer(network_.context_, CL_MEM_READ_WRITE, sizeof(cl_double) * l.input_size * l.desc.nodes)});
         // Initializing layer data
         auto& curr_cllayer = layers_.back();
         std::vector<cl_double> init_deltas(l.desc.nodes, cl_double{0});
@@ -65,6 +66,22 @@ std::tuple<cl_double, cl_double> cntrainer_impl::exec(const std::vector<cl_doubl
         compute_deltas(output_deltas);
     }
     return std::tuple<cl_double, cl_double>();
+}
+
+cl_double cntrainer_impl::learning_rate() const {
+    return eta_;
+}
+
+void cntrainer_impl::set_learning_rate(cl_double eta) {
+    eta_ = eta;
+}
+
+cl_double cntrainer_impl::momentum() const {
+    return alpha_;
+}
+
+void cntrainer_impl::set_momentum(cl_double alpha) {
+    alpha_ = alpha;
 }
 
 std::vector<cl_double> cntrainer_impl::states(size_t l) const {

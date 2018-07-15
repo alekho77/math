@@ -27,10 +27,10 @@ class cntrainer_impl final {
     std::tuple<cl_double, cl_double> exec(const std::vector<cl_double>& inputs,
                                           const std::vector<cl_double>& desired_outputs);
 
-    double learning_rate() const;
+    cl_double learning_rate() const;
     void set_learning_rate(cl_double eta);
 
-    double momentum() const;
+    cl_double momentum() const;
     void set_momentum(cl_double alpha);
 
     std::vector<cl_double> states(size_t layer) const;
@@ -41,12 +41,17 @@ class cntrainer_impl final {
 
     struct train_layer {
         const cnnetwork_impl::cllayer& network_layer;
-        cl::Buffer deltas;  // buffer with deltas
+        cl::Buffer deltas;       // buffer with deltas
+        cl::Buffer adjustments;  // buffer with previous adjustments
     };
 
     cnnetwork_impl& network_;
     std::vector<train_layer> layers_;
     cl::Kernel delta_kernel_;
+    cl::Kernel adjust_kernel_;
+
+    cl_double eta_;
+    cl_double alpha_;
 };
 
 }  // namespace cnn
