@@ -57,3 +57,18 @@ __kernel void delta_atom(__global const double* weights_prev,
     // until here only kernels with prev_output_id=0 can reach
     deltas[prev_weight_id] = deriv_sigmoid(outputs[prev_weight_id]) * inters_prev[prev_weight_id];
 }
+
+__kernel void adjust_atom(double eta, double alpha,
+                          __global const double* inputs,
+                          __global const double* deltas,
+                          __global double* weights,
+                          __global double* adjustments) {
+    const size_t stride = get_global_size(1);
+    const size_t neuron_id = get_global_id(0);
+    const size_t weight_id = get_global_id(1);
+    const size_t idx = neuron_id * stride + weight_id;
+    
+    const double adj = eta * inputs[weight_id] * deltas[neuron_id] + alpha * adjustments[idx];
+    weights[idx] += adj;
+    adjustments[idx] = adj;
+}

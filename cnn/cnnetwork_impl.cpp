@@ -129,13 +129,13 @@ size_t cnnetwork_impl::make_layer(size_t input_size, cnlayer layer, bool bias) {
         std::move(layer),  // desc
         input_size, output_size,
         layers_.empty() ? input_buf_ : layers_.back().outputs,  // reference to input buffer
-        cl::Buffer(context_, CL_MEM_READ_ONLY, sizeof(cl_double) * input_size * layer_size),   // weights buffer
-        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * layer_size),  // intermediate buffer
-        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * output_size)});            // output buffer
+        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * output_size),  // weights buffer
+        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * output_size),  // intermediate buffer
+        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * output_size)});             // output buffer
     {
         // Initializing layer data.
         auto& curr_cllayer = layers_.back();
-        std::vector<cl_double> init_weights(input_size * layer_size, cl_double{0});
+        std::vector<cl_double> init_weights(input_size * output_size, cl_double{0});
         {
             auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.weights, CL_TRUE, 0,
                                                      sizeof(cl_double) * init_weights.size(), init_weights.data());

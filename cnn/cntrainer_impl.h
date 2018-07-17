@@ -22,6 +22,7 @@ class cntrainer_impl final {
     cntrainer_impl(cntrainer_impl&&) = delete;
 
     void randomize(cl_double range, unsigned seed);
+    void reset();
 
     // Returns error before and after correction of weights
     std::tuple<cl_double, cl_double> exec(const std::vector<cl_double>& inputs,
@@ -38,6 +39,7 @@ class cntrainer_impl final {
 
  private:
     void compute_deltas(const std::vector<cl_double>& output_deltas);
+    void adjust_weights();
 
     struct train_layer {
         const cnnetwork_impl::cllayer& network_layer;
