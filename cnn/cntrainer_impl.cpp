@@ -10,6 +10,8 @@ cntrainer_impl::cntrainer_impl(cnnetwork_impl& network) : network_(network) {
     for (const auto& l : network_.layers_) {
         layers_.push_back(train_layer{
             l,  // reference to all data of network layer
+            cl::Buffer(network_.context_, CL_MEM_READ_WRITE,
+                       sizeof(cl_double) * l.output_size * l.input_size),                         // intermediate buffer
             cl::Buffer(network_.context_, CL_MEM_READ_WRITE, sizeof(cl_double) * l.output_size),  // deltas buffer
             cl::Buffer(network_.context_, CL_MEM_READ_WRITE,
                        sizeof(cl_double) * l.input_size * l.output_size)  // previous adjustments buffer
@@ -17,18 +19,24 @@ cntrainer_impl::cntrainer_impl(cnnetwork_impl& network) : network_(network) {
         // Initializing layer data
         auto& curr_cllayer = layers_.back();
         {
-            std::vector<cl_double> init_deltas(l.output_size, cl_double{0});
-            auto err = network_.cmd_queue_.enqueueWriteBuffer(
-                curr_cllayer.deltas, CL_TRUE, 0, sizeof(cl_double) * init_deltas.size(), init_deltas.data());
+            std::vector<cl_double> init_buf(l.output_size, cl_double{0});
+            auto err = network_.cmd_queue_.enqueueWriteBuffer(curr_cllayer.deltas, CL_TRUE, 0,
+                                                              sizeof(cl_double) * init_buf.size(), init_buf.data());
             if (err != CL_SUCCESS) {
                 throw std::logic_error("OpenCL weights buffer has not been written with error code: " +
                                        std::to_string(err));
             }
         }
         {
-            std::vector<cl_double> init_adjusts(l.input_size * l.output_size, cl_double{0});
-            auto err = network_.cmd_queue_.enqueueWriteBuffer(
-                curr_cllayer.adjustments, CL_TRUE, 0, sizeof(cl_double) * init_adjusts.size(), init_adjusts.data());
+            std::vector<cl_double> init_buf(l.input_size * l.output_size, cl_double{0});
+            auto err = network_.cmd_queue_.enqueueWriteBuffer(curr_cllayer.deltas_inter, CL_TRUE, 0,
+                                                              sizeof(cl_double) * init_buf.size(), init_buf.data());
+            if (err != CL_SUCCESS) {
+                throw std::logic_error("OpenCL weights buffer has not been written with error code: " +
+                                       std::to_string(err));
+            }
+            err = network_.cmd_queue_.enqueueWriteBuffer(curr_cllayer.adjustments, CL_TRUE, 0,
+                                                         sizeof(cl_double) * init_buf.size(), init_buf.data());
             if (err != CL_SUCCESS) {
                 throw std::logic_error("OpenCL weights buffer has not been written with error code: " +
                                        std::to_string(err));
@@ -92,7 +100,7 @@ std::tuple<cl_double, cl_double> cntrainer_impl::exec(const std::vector<cl_doubl
             output_deltas.push_back((desired_outputs[i] - actual_outputs[i]) * actual_outputs[i] *
                                     (1 - actual_outputs[i]));
         }
-        compute_deltas(output_deltas);
+        // compute_deltas(output_deltas);
     }
     // Second forward pass to modify the weights
     adjust_weights();
@@ -155,7 +163,7 @@ void cntrainer_impl::compute_deltas(const std::vector<cl_double>& output_deltas)
         auto prev_layer = layer - 1;
         const cl::NDRange range(prev_layer->network_layer.output_size, prev_layer->network_layer.input_size);
         delta_kernel_.setArg(0, prev_layer->network_layer.weights);
-        delta_kernel_.setArg(1, prev_layer->network_layer.inter_outputs);
+        delta_kernel_.setArg(1, prev_layer->deltas_inter);
         delta_kernel_.setArg(2, prev_layer->deltas);
         delta_kernel_.setArg(3, layer->network_layer.outputs);
         delta_kernel_.setArg(4, layer->deltas);

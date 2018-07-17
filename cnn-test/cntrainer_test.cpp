@@ -34,8 +34,8 @@ TEST_F(cntrainer_test_fixture, forward_pass) {
     cntrainer trainer(network);
     trainer({1, 0}, {1});
 
-    const std::vector<std::vector<double>> expected_states = {{0.610639233949222, 0.6856801139382539},
-                                                              {0.3404913400038911}};
+    const std::vector<std::vector<double>> expected_states = {{0.62312115069872909, 0.66964674723395157},
+                                                              {0.4174971614255642}};
     for (size_t l = 0; l < network.layer_num(); l++) {
         const auto states = trainer.states(l);
         ASSERT_EQ(expected_states[l].size(), states.size());
@@ -57,6 +57,56 @@ TEST_F(cntrainer_test_fixture, back_pass_deltas) {
         for (size_t n = 0; n < deltas.size(); n++) {
             EXPECT_DOUBLE_EQ(expected_deltas[l][n], deltas[n]);
         }
+    }
+}
+
+TEST_F(cntrainer_test_fixture, iteration) {
+    cntrainer trainer(network);
+    trainer.set_learning_rate(0.7);
+    trainer.set_momentum(0.3);
+
+    {
+        // The first iteration
+        auto errs = trainer({1, 0}, {1});
+        // EXPECT_DOUBLE_EQ(0.4349516726098631, std::get<0>(errs));
+        // EXPECT_DOUBLE_EQ(0.3674991051506382, std::get<1>(errs));
+
+        const std::vector<double> expected_weights_1 = {0.4869720274831185, -0.12};
+        const auto weights_1 = network.weights(0, 0);
+        ASSERT_EQ(expected_weights_1.size(), weights_1.size());
+        for (size_t i = 0; i < weights_1.size(); i++) {
+            EXPECT_DOUBLE_EQ(expected_weights_1[i], weights_1[i]);
+        }
+
+        const std::vector<double> expected_weights_2 = {0.7286114498906873, 0.13};
+        const auto weights_2 = network.weights(0, 1);
+        ASSERT_EQ(expected_weights_2.size(), weights_2.size());
+        for (size_t i = 0; i < weights_2.size(); i++) {
+            EXPECT_DOUBLE_EQ(expected_weights_2[i], weights_2[i]);
+        }
+
+        const std::vector<double> expected_weights_3 = {1.56330380580478, -2.22891684915785, 0.1036680944907062};
+        const auto weights_3 = network.weights(1, 0);
+        ASSERT_EQ(expected_weights_3.size(), weights_3.size());
+        for (size_t i = 0; i < weights_3.size(); i++) {
+            EXPECT_DOUBLE_EQ(expected_weights_3[i], weights_3[i]);
+        }
+    }
+    {
+        // The second iteration
+        // auto errs = trainer(std::make_tuple(1, 0), std::make_tuple(1));
+        // EXPECT_DOUBLE_EQ(0.3674991051506382, std::get<0>(errs));
+        // EXPECT_DOUBLE_EQ(0.2857407453988994, std::get<1>(errs));
+
+        // EXPECT_DOUBLE_EQ(0.5353970535635459, std::get<0>(network.layer<0>()).weight<0>());
+        // EXPECT_DOUBLE_EQ(-0.12, std::get<0>(network.layer<0>()).weight<1>());
+
+        // EXPECT_DOUBLE_EQ(0.6636227394088663, std::get<1>(network.layer<0>()).weight<0>());
+        // EXPECT_DOUBLE_EQ(0.13, std::get<1>(network.layer<0>()).weight<1>());
+
+        // EXPECT_DOUBLE_EQ(1.645039703595705, std::get<0>(network.layer<1>()).weight<0>());
+        // EXPECT_DOUBLE_EQ(-2.139264721821502, std::get<0>(network.layer<1>()).weight<1>());
+        // EXPECT_DOUBLE_EQ(0.236068941453811, std::get<0>(network.layer<1>()).bias());
     }
 }
 

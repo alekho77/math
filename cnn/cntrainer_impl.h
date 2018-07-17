@@ -43,8 +43,9 @@ class cntrainer_impl final {
 
     struct train_layer {
         const cnnetwork_impl::cllayer& network_layer;
-        cl::Buffer deltas;       // buffer with deltas
-        cl::Buffer adjustments;  // buffer with previous adjustments
+        cl::Buffer deltas_inter;  // intermediate buffer to compute deltas
+        cl::Buffer deltas;        // buffer with deltas
+        cl::Buffer adjustments;   // buffer with previous adjustments
     };
 
     cnnetwork_impl& network_;

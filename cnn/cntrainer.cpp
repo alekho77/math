@@ -16,6 +16,22 @@ std::tuple<double, double> cntrainer::operator()(const std::vector<double>& inpu
     return impl_->exec(inputs, desired_outputs);
 }
 
+double cntrainer::learning_rate() const {
+    return impl_->learning_rate();
+}
+
+void cntrainer::set_learning_rate(double eta) {
+    impl_->set_learning_rate(eta);
+}
+
+double cntrainer::momentum() const {
+    return impl_->momentum();
+}
+
+void cntrainer::set_momentum(double alpha) {
+    impl_->set_momentum(alpha);
+}
+
 std::vector<double> cntrainer::states(size_t layer) const {
     return impl_->states(layer);
 }
