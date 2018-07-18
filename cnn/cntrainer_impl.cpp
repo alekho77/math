@@ -94,13 +94,11 @@ std::tuple<cl_double, cl_double> cntrainer_impl::exec(const std::vector<cl_doubl
     }
     {
         // Actually output size is quite small so we feel free to make output deltas on CPU
-        std::vector<cl_double> output_deltas;
-        output_deltas.reserve(actual_outputs.size());
+        std::vector<cl_double> output_deltas(layers_.back().network_layer.output_size, cl_double{0});
         for (size_t i = 0; i < actual_outputs.size(); i++) {
-            output_deltas.push_back((desired_outputs[i] - actual_outputs[i]) * actual_outputs[i] *
-                                    (1 - actual_outputs[i]));
+            output_deltas[i] = (desired_outputs[i] - actual_outputs[i]) * actual_outputs[i] * (1 - actual_outputs[i]);
         }
-        // compute_deltas(output_deltas);
+        compute_deltas(output_deltas);
     }
     // Second forward pass to modify the weights
     adjust_weights();
@@ -176,7 +174,7 @@ void cntrainer_impl::compute_deltas(const std::vector<cl_double>& output_deltas)
 
 void cntrainer_impl::adjust_weights() {
     for (const auto& layer : layers_) {
-        const cl::NDRange range(layer.network_layer.output_size, layer.network_layer.input_size);
+        const cl::NDRange range(layer.network_layer.desc.nodes, layer.network_layer.input_size);
         adjust_kernel_.setArg(0, eta_);
         adjust_kernel_.setArg(1, alpha_);
         adjust_kernel_.setArg(2, layer.network_layer.inputs);

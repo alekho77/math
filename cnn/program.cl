@@ -28,8 +28,6 @@ __kernel void neuron_atom(__global const double* inputs,
     }
 
     // until here, only weight_id=0 can reach
-    printf("%d %d = %f\r\n", neuron_id, weight_id, inters[idx]);
-    //printf("%f\r\n", inters[idx]);
     outputs[neuron_id] = sigmoid(inters[idx]);
 }
 
@@ -60,7 +58,7 @@ __kernel void delta_atom(__global const double* weights_prev,
     deltas[prev_weight_id] = deriv_sigmoid(outputs[prev_weight_id]) * inters[prev_weight_id];
 }
 
-__kernel void adjust_atom(double eta, double alpha,
+__kernel void adjust_atom(const double eta, const double alpha,
                           __global const double* inputs,
                           __global const double* deltas,
                           __global double* weights,

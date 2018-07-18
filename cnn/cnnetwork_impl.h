@@ -53,7 +53,7 @@ class cnnetwork_impl final {
         size_t output_size;
         cl::Buffer inputs;         // reference to exist buffer
         cl::Buffer weights;        // weights of all nodes
-        cl::Buffer inter_outputs;  // the same size like weights buffer
+        cl::Buffer outputs_inter;  // the same size like weights buffer
         cl::Buffer outputs;        // result of all nodes plus 1.0 for bias of next layer if it is present
     };
 

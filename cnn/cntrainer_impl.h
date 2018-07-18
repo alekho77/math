@@ -53,8 +53,8 @@ class cntrainer_impl final {
     cl::Kernel delta_kernel_;
     cl::Kernel adjust_kernel_;
 
-    cl_double eta_;
-    cl_double alpha_;
+    cl_double eta_ = 1.0;
+    cl_double alpha_ = 0.0;
 };
 
 }  // namespace cnn

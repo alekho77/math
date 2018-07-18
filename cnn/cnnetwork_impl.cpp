@@ -85,7 +85,7 @@ std::vector<cl_double> cnnetwork_impl::exec(const std::vector<cl_double>& inputs
         const cl::NDRange range(layer.desc.nodes, layer.input_size);
         kernel_.setArg(0, layer.inputs);
         kernel_.setArg(1, layer.weights);
-        kernel_.setArg(2, layer.inter_outputs);
+        kernel_.setArg(2, layer.outputs_inter);
         kernel_.setArg(3, layer.outputs);
         auto err = cmd_queue_.enqueueNDRangeKernel(kernel_, cl::NDRange(0, 0), range);
         if (err != CL_SUCCESS) {
@@ -129,13 +129,13 @@ size_t cnnetwork_impl::make_layer(size_t input_size, cnlayer layer, bool bias) {
         std::move(layer),  // desc
         input_size, output_size,
         layers_.empty() ? input_buf_ : layers_.back().outputs,  // reference to input buffer
-        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * layer_size),  // weights buffer
-        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * layer_size),  // intermediate buffer
-        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * output_size)});            // output buffer
+        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * output_size),  // weights buffer
+        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * input_size * output_size),  // intermediate buffer
+        cl::Buffer(context_, CL_MEM_READ_WRITE, sizeof(cl_double) * output_size)});             // output buffer
     {
         // Initializing layer data.
         auto& curr_cllayer = layers_.back();
-        std::vector<cl_double> init_weights(input_size * layer_size, cl_double{0});
+        std::vector<cl_double> init_weights(input_size * output_size, cl_double{0});
         {
             auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.weights, CL_TRUE, 0,
                                                      sizeof(cl_double) * init_weights.size(), init_weights.data());
@@ -145,20 +145,20 @@ size_t cnnetwork_impl::make_layer(size_t input_size, cnlayer layer, bool bias) {
             }
         }
         {
-            auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.inter_outputs, CL_TRUE, 0,
+            auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.outputs_inter, CL_TRUE, 0,
                                                      sizeof(cl_double) * init_weights.size(), init_weights.data());
             if (err != CL_SUCCESS) {
                 throw std::logic_error("OpenCL weights buffer has not been written with error code: " +
                                        std::to_string(err));
             }
         }
-        std::vector<cl_double> init_outputs(output_size, cl_double{0});
+        std::vector<cl_double> outputs_init(output_size, cl_double{0});
         if (bias) {
-            init_outputs[layer_size] = 1.0;
+            outputs_init[layer_size] = 1.0;
         }
         {
             auto err = cmd_queue_.enqueueWriteBuffer(curr_cllayer.outputs, CL_TRUE, 0,
-                                                     sizeof(cl_double) * init_outputs.size(), init_outputs.data());
+                                                     sizeof(cl_double) * outputs_init.size(), outputs_init.data());
             if (err != CL_SUCCESS) {
                 throw std::logic_error("OpenCL weights buffer has not been written with error code: " +
                                        std::to_string(err));
