@@ -68,8 +68,8 @@ TEST_F(cntrainer_test_fixture, iteration) {
     {
         // The first iteration
         auto errs = trainer({1, 0}, {1});
-        // EXPECT_DOUBLE_EQ(0.4349516726098631, std::get<0>(errs));
-        // EXPECT_DOUBLE_EQ(0.3674991051506382, std::get<1>(errs));
+        EXPECT_DOUBLE_EQ(0.4349516726098631, std::get<0>(errs));
+        EXPECT_DOUBLE_EQ(0.3674991051506382, std::get<1>(errs));
 
         const std::vector<double> expected_weights_1 = {0.4869720274831185, -0.12};
         const auto weights_1 = network.weights(0, 0);
@@ -94,19 +94,30 @@ TEST_F(cntrainer_test_fixture, iteration) {
     }
     {
         // The second iteration
-        // auto errs = trainer(std::make_tuple(1, 0), std::make_tuple(1));
-        // EXPECT_DOUBLE_EQ(0.3674991051506382, std::get<0>(errs));
-        // EXPECT_DOUBLE_EQ(0.2857407453988994, std::get<1>(errs));
+        auto errs = trainer({1, 0}, {1});
+        EXPECT_DOUBLE_EQ(0.3674991051506382, std::get<0>(errs));
+        EXPECT_DOUBLE_EQ(0.2857407453988994, std::get<1>(errs));
 
-        // EXPECT_DOUBLE_EQ(0.5353970535635459, std::get<0>(network.layer<0>()).weight<0>());
-        // EXPECT_DOUBLE_EQ(-0.12, std::get<0>(network.layer<0>()).weight<1>());
+        const std::vector<double> expected_weights_1 = {0.5353970535635459, -0.12};
+        const auto weights_1 = network.weights(0, 0);
+        ASSERT_EQ(expected_weights_1.size(), weights_1.size());
+        for (size_t i = 0; i < weights_1.size(); i++) {
+            EXPECT_DOUBLE_EQ(expected_weights_1[i], weights_1[i]);
+        }
 
-        // EXPECT_DOUBLE_EQ(0.6636227394088663, std::get<1>(network.layer<0>()).weight<0>());
-        // EXPECT_DOUBLE_EQ(0.13, std::get<1>(network.layer<0>()).weight<1>());
+        const std::vector<double> expected_weights_2 = {0.6636227394088663, 0.13};
+        const auto weights_2 = network.weights(0, 1);
+        ASSERT_EQ(expected_weights_2.size(), weights_2.size());
+        for (size_t i = 0; i < weights_2.size(); i++) {
+            EXPECT_DOUBLE_EQ(expected_weights_2[i], weights_2[i]);
+        }
 
-        // EXPECT_DOUBLE_EQ(1.645039703595705, std::get<0>(network.layer<1>()).weight<0>());
-        // EXPECT_DOUBLE_EQ(-2.139264721821502, std::get<0>(network.layer<1>()).weight<1>());
-        // EXPECT_DOUBLE_EQ(0.236068941453811, std::get<0>(network.layer<1>()).bias());
+        const std::vector<double> expected_weights_3 = {1.645039703595705, -2.139264721821502, 0.236068941453811};
+        const auto weights_3 = network.weights(1, 0);
+        ASSERT_EQ(expected_weights_3.size(), weights_3.size());
+        for (size_t i = 0; i < weights_3.size(); i++) {
+            EXPECT_DOUBLE_EQ(expected_weights_3[i], weights_3[i]);
+        }
     }
 }
 

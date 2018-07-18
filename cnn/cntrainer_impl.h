@@ -40,6 +40,7 @@ class cntrainer_impl final {
  private:
     void compute_deltas(const std::vector<cl_double>& output_deltas);
     void adjust_weights();
+    cl_double error(const std::vector<cl_double>& expected, const std::vector<cl_double>& actual) const;
 
     struct train_layer {
         const cnnetwork_impl::cllayer& network_layer;

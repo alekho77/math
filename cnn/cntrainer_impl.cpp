@@ -1,5 +1,7 @@
 #include "cntrainer_impl.h"
 
+#include "math/mathlib/helpers.h"
+
 #include <random>
 #include <algorithm>
 #include <sstream>
@@ -104,10 +106,8 @@ std::tuple<cl_double, cl_double> cntrainer_impl::exec(const std::vector<cl_doubl
     adjust_weights();
     // Third forward pass to compute adjusted result
     const auto adjusted_outputs = network_.exec(inputs);
-    {
-        // Again, output size is quite small so we perform to compute errors on CPU
-    }
-    return std::tuple<cl_double, cl_double>();
+    return std::tuple<cl_double, cl_double>{error(desired_outputs, actual_outputs),
+                                            error(desired_outputs, adjusted_outputs)};
 }
 
 cl_double cntrainer_impl::learning_rate() const {
@@ -186,6 +186,15 @@ void cntrainer_impl::adjust_weights() {
             throw std::logic_error("OpenCL kernel has not been executed with error code: " + std::to_string(err));
         }
     }
+}
+
+cl_double cntrainer_impl::error(const std::vector<cl_double>& expected, const std::vector<cl_double>& actual) const {
+    // Again, output size is quite small so we perform to compute errors on CPU
+    cl_double err = 0;
+    for (size_t i = 0; i < expected.size(); ++i) {
+        err += mathlib::powi(expected[i] - actual[i], 2);
+    }
+    return err;
 }
 
 }  // namespace cnn
