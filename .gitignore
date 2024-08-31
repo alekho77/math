@@ -1,0 +1,138 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.swn
+
+# Compiled Object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.stackdump
+*.mem
+*.elf
+
+# Visual Studio
+.vscode/
+.vs/
+*.vcxproj*
+*.vcproj*
+*.sln*
+*.suo
+*.user
+*.userossc
+*.userprefs
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.ipch
+*.tlog/
+*.lastbuildstate
+*.log
+*.iobj
+*.ipdb
+*.idb
+*.pdb
+*.ilk
+*.aps
+*.pch
+*.res
+*.rsp
+*.rlt
+*.vcxproj.*
+*.psess
+*.pdb
+*.log
+*.shfb
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Visual Studio Code
+.vscode/
+.history/
+*.code-workspace
+*.code-snippets
+*.launch
+
+# CLion
+cmake-build-debug/
+cmake-build-release/
+cmake-build-*
+.idea/
+*.iml
+*.iws
+*.ipr
+*.hbp
+.vscode/
+cmake-build-*
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+compile_commands.json
+cmake-build-*/
+
+# Windows specific
+*.db
+*.VC.db
+*.VC.opendb
+*.pdb
+*.idb
+*.dir/
+
+# Linux specific
+*~
+.ninja*
+*.cmake
+*.out
+*.log
+
+# MacOS specific
+*.DS_Store
+*.AppleDouble
+*.LSOverride
+
+# JetBrains IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
