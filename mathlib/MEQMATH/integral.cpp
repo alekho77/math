@@ -17,10 +17,10 @@ RealEps=0.0L;
 AnsiString __fastcall TIntPar::GetErrStr()
 {
 char *ErrStr[4]={
-/* 0 */"Ошибок нет",
-/* 1 */"Неизвестный метод интегрирования",
-/* 2 */"Неверно задана точность",
-/* 3 */"Задана слишком высокая точность, произошло переполнение"
+/* 0 */"No errors",
+/* 1 */"Unknown integration method",
+/* 2 */"Incorrect accuracy specified",
+/* 3 */"Too high accuracy specified, overflow occurred"
 };
 if((iErr<0)||(iErr>3))return AnsiString("Не правильный код ошибки");
 return AnsiString(ErrStr[iErr]);

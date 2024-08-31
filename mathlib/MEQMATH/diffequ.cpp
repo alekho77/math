@@ -9,9 +9,9 @@ Extended __fastcall SolEiler(const HDiffEqu f,const Extended& Xo,const Extended&
 {
 Cardinal i,m=cm;
 Extended Xi,h,Yi,Y;
-if(m<1)m=1; // На случай ошибки
+if(m<1)m=1; // In case of an error
 Eps=fabsl(Eps);
-/* Начальный расчет */
+/* Initial calculation */
 h=(X-Xo)/m;
 Xi=Xo;
 Yi=Yo;
@@ -20,7 +20,7 @@ for(i=0;i<m;i++)
   Xi=Xi+h;
   Yi=Yi+h*((*f)(Xi,Yi));
   }
-/* Пересчитываем с вдвое меньшим шагом */
+/* Recalculate with half the step size */
 do{
   Y=Yi;
   m*=2;

@@ -2,9 +2,9 @@
 #ifndef diffequH
 #define diffequH
 //---------------------------------------------------------------------------
-/* ”казатель на функцию вида y'=f(x,y) */
+/* Pointer to a function of the form y'=f(x,y) */
 typedef Extended __fastcall (*HDiffEqu)(Extended&, Extended&);
-/* –ешение задачи  оши методом Ёйлера */
+/* Solving the Cauchy problem using Euler's method */
 Extended __fastcall SolEiler(const HDiffEqu f,const Extended& Xo,const Extended& Yo,const Extended& X,const Cardinal& m,Extended& Eps);
 //---------------------------------------------------------------------------
 #endif

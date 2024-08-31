@@ -2,26 +2,26 @@
 #ifndef integralH
 #define integralH
 //---------------------------------------------------------------------------
-/* Метод интегрирования:
-    miRectangle - метод прямоугольников
-    miTrapezoid - метод трапеций
-    miSimpson   - метод Симпсона
+/* Integration method:
+    miRectangle - rectangle method
+    miTrapezoid - trapezoid method
+    miSimpson   - Simpson's method
 */
 enum TIntegralMethod{miRectangle,miTrapezoid,miSimpson};
 //---------------------------------------------------------------------------
-/* Тип для обозначения подинтегральной функции */
+/* Type for denoting the integrand function */
 typedef Extended __fastcall (*HUnderIntFunc)(Extended);
 //---------------------------------------------------------------------------
-/* Структура для передачи параметров в интегрирующую функцию */
+/* Structure for passing parameters to the integration function */
 struct TIntPar
 {
-    HUnderIntFunc F; // Подинтегральная функция
-    Extended A,B; // Пределы интегрирования
-    Extended Abs; // Абсолютная погрешность
-    Extended Eps; // Относительная погрешность
-    Extended RealEps; // Реальная точность, полученная после вычисления
-    TIntegralMethod IntMeth; // Метод интегрирования
-    int iErr; // Индекс ошибки
+    HUnderIntFunc F; // Integrand function
+    Extended A,B; // Integration limits
+    Extended Abs; // Absolute error
+    Extended Eps; // Relative error
+    Extended RealEps; // Actual accuracy obtained after calculation
+    TIntegralMethod IntMeth; // Integration method
+    int iErr; // Error index
     __fastcall TIntPar();
     AnsiString __fastcall GetErrStr();
 };
