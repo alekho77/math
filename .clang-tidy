@@ -1,0 +1,38 @@
+---
+Checks: >
+  -*,
+  bugprone-*,           # Checks for potential bugs
+  performance-*,        # Checks for performance improvements
+  readability-*,        # Checks for code readability improvements
+  modernize-*,          # Checks for usage of modern C++ features (e.g., C++11 and later)
+  readability-identifier-naming  # Adds checks for identifier naming style
+
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle: file
+
+CheckOptions:
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: CamelCase
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+
+  - key:             modernize-use-auto
+    value:           'false'  # Disables auto keyword to maintain explicit type declarations
+  - key:             modernize-use-trailing-return
+    value:           'false'  # Disables trailing return type style ("->")
+  - key:             readability-magic-numbers.IgnoreLiteralNumbers
+    value:           '1,0,-1' # Allows the use of these common literals in mathematical calculations
+  - key:             bugprone-narrowing-conversions.WarnOnIntegerNarrowingConversion
+    value:           'true'   # Warns about potential data loss during narrowing conversions
+  - key:             performance-unnecessary-value-param
+    value:           'false'  # Disables warnings about passing parameters by value, which might be intentional in mathematical operations

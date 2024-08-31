@@ -1,0 +1,29 @@
+---
+Language:        Cpp
+AccessModifierOffset: -3
+AlignAfterOpenBracket: Align
+AlignOperands:   AlignAfterOperator
+AlignTrailingComments: Always
+AllowAllArgumentsOnNextLine: true
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: true
+BinPackArguments: true
+BinPackParameters: true
+BreakBeforeBraces: Attach
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+ColumnLimit:     120
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+IncludeBlocks:   Preserve
+IndentCaseLabels: true
+IndentPPDirectives: None
+IndentWidth:     4
+PointerAlignment: Left
+SortIncludes:    CaseInsensitive
+SpaceBeforeParens: ControlStatements
+TabWidth:        8
+UseTab:          Never
+...
