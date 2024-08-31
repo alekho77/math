@@ -9,9 +9,9 @@ Extended __fastcall SolEiler(const HDiffEqu f,const Extended& Xo,const Extended&
 {
 Cardinal i,m=cm;
 Extended Xi,h,Yi,Y;
-if(m<1)m=1; // Íà ñëó÷àé îøèáêè
+if(m<1)m=1; // ÐÐ° ÑÐ»ÑƒÑ‡Ð°Ð¹ Ð¾ÑˆÐ¸Ð±ÐºÐ¸
 Eps=fabsl(Eps);
-/* Íà÷àëüíûé ðàñ÷åò */
+/* ÐÐ°Ñ‡Ð°Ð»ÑŒÐ½Ñ‹Ð¹ Ñ€Ð°ÑÑ‡ÐµÑ‚ */
 h=(X-Xo)/m;
 Xi=Xo;
 Yi=Yo;
@@ -20,7 +20,7 @@ for(i=0;i<m;i++)
   Xi=Xi+h;
   Yi=Yi+h*((*f)(Xi,Yi));
   }
-/* Ïåðåñ÷èòûâàåì ñ âäâîå ìåíüøèì øàãîì */
+/* ÐŸÐµÑ€ÐµÑÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÐ¼ Ñ Ð²Ð´Ð²Ð¾Ðµ Ð¼ÐµÐ½ÑŒÑˆÐ¸Ð¼ ÑˆÐ°Ð³Ð¾Ð¼ */
 do{
   Y=Yi;
   m*=2;
