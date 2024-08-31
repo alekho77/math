@@ -2,12 +2,12 @@
 #ifndef meqmathH
 #define meqmathH
 
-#include "matrix.h" 
-#include "vector.h" 
 #include "deqsys.h"
+#include "matrix.h"
+#include "vector.h"
 
-#define min(a, b)  (((a) < (b)) ? (a) : (b))
-#define max(a, b)  (((a) > (b)) ? (a) : (b))  
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 /* Pi divided by 180 (for converting degrees to radians) */
 extern const Extended M_PI_180;
 /* 180 divided by Pi (for converting radians to degrees) */
