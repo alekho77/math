@@ -8,22 +8,22 @@
 
 #define min(a, b)  (((a) < (b)) ? (a) : (b))
 #define max(a, b)  (((a) > (b)) ? (a) : (b))  
-/* Число пи деленное на 180 (для перевода градусов в радианы) */
+/* Pi divided by 180 (for converting degrees to radians) */
 extern const Extended M_PI_180;
-/* 180 деленное на число пи (для перевода радиан в градусы) */
+/* 180 divided by Pi (for converting radians to degrees) */
 extern const Extended M_180_PI;
 //---------------------------------------------------------------------------
-/* Преобразование вектора в матрицу.
-   Line=true - Результат матрица-строка, иначе матрица-столбец */
+/* Vector to matrix conversion.
+   Line=true - Result is a row matrix, otherwise a column matrix */
 Matrix __fastcall VectorToMatrix(Vector V, bool Line = false);
-/* Преобразование матрицы в вектор.
-   Line=true - Результат матрица-строка, иначе матрица-столбец */
+/* Matrix to vector conversion.
+   Line=true - Result is a row matrix, otherwise a column matrix */
 Vector __fastcall MatrixToVector(Matrix M);
-/* Возвращает матрицу (3,3) поворота вокруг оси Ox (угол Angle - в рад) */
+/* Returns a (3,3) rotation matrix around the Ox axis (Angle in radians) */
 Matrix __fastcall RotX(Extended Angle);
-/* Возвращает матрицу (3,3) поворота вокруг оси Oy (угол Angle - в рад) */
+/* Returns a (3,3) rotation matrix around the Oy axis (Angle in radians) */
 Matrix __fastcall RotY(Extended Angle);
-/* Возвращает матрицу (3,3) поворота вокруг оси Oz (угол Angle - в рад) */
+/* Returns a (3,3) rotation matrix around the Oz axis (Angle in radians) */
 Matrix __fastcall RotZ(Extended Angle);
 //---------------------------------------------------------------------------
 #endif

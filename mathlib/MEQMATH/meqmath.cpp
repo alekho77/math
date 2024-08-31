@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 
-/* Число пи деленное на 180 (для перевода градусов в радианы) */
+/* Pi divided by 180 (for converting degrees to radians) */
 const Extended M_PI_180 = 0.0174532925199432957692369076848861L;
-/* 180 деленное на число пи (для перевода радиан в градусы) */
+/* 180 divided by Pi (for converting radians to degrees) */
 const Extended M_180_PI = 57.2957795130823208767981548141052L;
 //---------------------------------------------------------------------------
-/* Преобразование вектора в матрицу.
-   Line=true - Результат матрица-строка, иначе матрица-столбец */
+/* Vector to matrix conversion.
+   Line=true - Result is a row matrix, otherwise a column matrix */
 Matrix __fastcall VectorToMatrix(Vector V, bool Line)
 {
 Matrix M;
@@ -32,8 +32,8 @@ for(int i=1;i<=V.Dim;i++) M[i]=V[i];
 return M;
 }
 //---------------------------------------------------------------------------
-/* Преобразование матрицы в вектор.
-   Line=true - Результат матрица-строка, иначе матрица-столбец */
+/* Matrix to vector conversion.
+   Line=true - Result is a row matrix, otherwise a column matrix */
 Vector __fastcall MatrixToVector(Matrix M)
 {
 Vector V;
@@ -43,7 +43,7 @@ for(int i=1;i<=V.Dim;i++)V[i]=M[i];
 return V;
 }
 //---------------------------------------------------------------------------
-/* Возвращает матрицу (3,3) поворота вокруг оси Ox (угол Angle - в рад) */
+/* Returns a (3,3) rotation matrix around the Ox axis (Angle in radians) */
 Matrix __fastcall RotX(Extended Angle)
 {
 Matrix Rx(3,3);
@@ -58,7 +58,7 @@ Rx[9]=cosFi;
 return Rx;
 }
 //---------------------------------------------------------------------------
-/* Возвращает матрицу (3,3) поворота вокруг оси Oy (угол Angle - в рад) */
+/* Returns a (3,3) rotation matrix around the Oy axis (Angle in radians) */
 Matrix __fastcall RotY(Extended Angle)
 {
 Matrix Ry(3,3);
@@ -73,7 +73,7 @@ Ry[9]=cosPsi;
 return Ry;
 }
 //---------------------------------------------------------------------------
-/* Возвращает матрицу (3,3) поворота вокруг оси Oz (угол Angle - в рад) */
+/* Returns a (3,3) rotation matrix around the Oz axis (Angle in radians) */
 Matrix __fastcall RotZ(Extended Angle)
 {
 Matrix Rz(3,3);
