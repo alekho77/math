@@ -1,0 +1,50 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Global settings for all files
+[*]
+indent_style = space
+indent_size = 4
+tab_width = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Settings for C++ source files
+[*.cpp]
+indent_size = 4
+tab_width = 4
+max_line_length = 120
+insert_final_newline = true
+
+# Settings for C++ header files
+[*.h]
+indent_size = 4
+tab_width = 4
+max_line_length = 120
+insert_final_newline = true
+
+# Settings for Markdown files
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false
+
+# Settings for CMake files
+[*.cmake]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Settings for JSON files
+[*.json]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Settings for Python files (if you have any)
+[*.py]
+indent_size = 4
+tab_width = 4
