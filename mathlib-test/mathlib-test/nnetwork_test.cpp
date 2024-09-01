@@ -1,4 +1,4 @@
-#include "math/mathlib/nnetwork.h"
+#include "nnetwork.h"
 
 #include <gtest/gtest.h>
 

@@ -1,4 +1,4 @@
-#include "math/mathlib/bp_trainer.h"
+#include "bp_trainer.h"
 
 #include <gtest/gtest.h>
 

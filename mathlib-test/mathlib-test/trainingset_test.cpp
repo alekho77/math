@@ -1,5 +1,5 @@
-#include "math/mathlib/bp_trainer.h"
-#include "math/mathlib/trainingset.h"
+#include "bp_trainer.h"
+#include "trainingset.h"
 
 #include <gtest/gtest.h>
 

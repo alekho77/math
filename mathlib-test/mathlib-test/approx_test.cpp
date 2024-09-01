@@ -1,4 +1,4 @@
-#include "math/mathlib/approx.h"
+#include "approx.h"
 
 #include <gtest/gtest.h>
 
