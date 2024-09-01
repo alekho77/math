@@ -9,6 +9,8 @@
 #include "helpers.h"
 #include "matrix.h"
 
+#include <cmath>
+
 namespace mathlib {
 
 // [A]*[X]=[B]

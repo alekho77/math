@@ -7,6 +7,7 @@
 #define MATHLIB_HELPERS_H
 
 #include <limits>
+#include <stddef.h>
 #include <tuple>
 #include <type_traits>
 #include <utility>
