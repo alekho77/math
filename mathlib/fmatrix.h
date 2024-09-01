@@ -19,7 +19,7 @@ template <typename R, typename... Args> class fmatrix<R(Args...)> {
     static_assert(are_same<R, Args...>::value == true, "Different types are not allowed.");
 
     using function_t = std::function<R(Args...)>;
-    using data_container = std::vector<typename function_t>;
+    using data_container = std::vector<function_t>;
     using const_iterator = typename data_container::const_iterator;
     using iterator = typename data_container::iterator;
 
@@ -43,7 +43,7 @@ template <typename R, typename... Args> class fmatrix<R(Args...)> {
  public:
     fmatrix() : fmatrix(0, 0) {}
     explicit fmatrix(const size_t r) : fmatrix(r, 1) {}
-    fmatrix(const size_t r, const size_t c) : rows_(r), cols_(c), data_(r * c, typename function_t()) {}
+    fmatrix(const size_t r, const size_t c) : rows_(r), cols_(c), data_(r * c, function_t()) {}
     fmatrix(std::initializer_list<std::initializer_list<function_t>>&& list) noexcept(false)
         : fmatrix(list.size(), list.begin()->size()) {
         auto iter = data_.begin();

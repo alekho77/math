@@ -90,12 +90,12 @@ template <typename R, typename... Args> class derivative<R(Args...)> {
 };
 
 template <typename R, typename... Args>
-typename derivative<R(Args...)> make_deriv(R (*func)(Args...), R eps = numeric_consts<R>::epsilon) {
+derivative<R(Args...)> make_deriv(R (*func)(Args...), R eps = numeric_consts<R>::epsilon) {
     return derivative<R(Args...)>(func, eps);
 }
 
 template <typename C, typename R, typename... Args>
-typename derivative<R(Args...)> make_deriv(R (C::*func)(Args...), C* that, R eps = numeric_consts<R>::epsilon) {
+derivative<R(Args...)> make_deriv(R (C::*func)(Args...), C* that, R eps = numeric_consts<R>::epsilon) {
     return derivative<R(Args...)>([that, func](Args... args) -> R { return (that->*func)(args...); }, eps);
 }
 

@@ -53,11 +53,14 @@ template <typename T, size_t N, typename B = BIAS<T>, typename F = SIGMOID<T>> c
         return actfun_(combiner<N>(std::forward_as_tuple(args...)));
     }
 
-    template <typename = std::enable_if_t<use_bias>> inline void set_bias(T b) {
-        bias_ = b;
+    void set_bias(T b) {
+        static_assert(use_bias, "use_bias is false!");
+        if constexpr (use_bias) {
+            this->bias_ = b;
+        }
     }
     inline T bias() const {
-        return bias_;
+        return this->bias_;
     }
 
     template <typename... Args> inline void set_weights(Args&&... args) {
@@ -81,10 +84,11 @@ template <typename T, size_t N, typename B = BIAS<T>, typename F = SIGMOID<T>> c
 
  private:
     template <size_t I> inline T combiner(const weights_t& inputs) const {
-        return std::get<I - 1>(inputs) * std::get<I - 1>(weights_) + combiner<I - 1>(inputs);
-    }
-    template <> inline T combiner<0>(const weights_t&) const {
-        return bias_;
+        if constexpr (I == 0) {
+            return this->bias_;
+        } else {
+            return std::get<I - 1>(inputs) * std::get<I - 1>(weights_) + combiner<I - 1>(inputs);
+        }
     }
 
     template <typename G, size_t... I> inline void initializer(const G& gen, std::index_sequence<I...>) {

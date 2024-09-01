@@ -50,17 +50,19 @@ template <typename Input, typename Output, typename Map> class nnetwork {
     }
 
     template <size_t I> const typename network_layer<I, nnetwork>::type& layer() const {
-        return input_.layer<I>();
-    }
-    template <> const typename network_layer<Input::num_layers, nnetwork>::type& layer<Input::num_layers>() const {
-        return output_;
+        if constexpr (I == Input::num_layers) {
+            return output_;
+        } else {
+            return input_.template layer<I>();
+        }
     }
 
     template <size_t I> typename network_layer<I, nnetwork>::type& layer() {
-        return input_.layer<I>();
-    }
-    template <> typename network_layer<Input::num_layers, nnetwork>::type& layer<Input::num_layers>() {
-        return output_;
+        if constexpr (I == Input::num_layers) {
+            return output_;
+        } else {
+            return input_.template layer<I>();
+        }
     }
 
  private:
@@ -91,7 +93,7 @@ template <size_t D, typename Network> struct network_layer_downcount {
 };
 
 template <typename Network> struct network_layer_downcount<1, Network> {
-    using type = typename Network;
+    using type = Network;
 };
 
 template <size_t I, typename Network> struct network_layer {

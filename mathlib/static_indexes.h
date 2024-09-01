@@ -7,6 +7,7 @@
 #define MATHLIB_STATIC_INDEXES_H
 
 #include <array>
+#include <stddef.h>
 #include <type_traits>
 
 namespace mathlib {

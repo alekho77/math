@@ -80,11 +80,12 @@ template <typename Network> class bp_trainer {
 
      private:
         template <size_t K> inline void walk_layer() {
-            using Layer = network_layer_t<K, Network>;
-            layer_walker<Layer> (*this)(network_.layer<K>());
-            walk_layer<K + 1>();
+            if constexpr (K < Network::num_layers) {
+                using Layer = network_layer_t<K, Network>;
+                layer_walker<Layer> (*this)(network_.template layer<K>());
+                walk_layer<K + 1>();
+            }
         }
-        template <> inline void walk_layer<Network::num_layers>() {}
 
         template <typename Layer> struct layer_walker {
             explicit layer_walker(randomizer& rand) : random_(rand) {}
@@ -94,11 +95,12 @@ template <typename Network> class bp_trainer {
             }
 
             template <size_t I> inline void walk_neuron(Layer& layer) {
-                using Neuron = std::tuple_element_t<I, Layer>;
-                (neuron_walker<Neuron, Neuron::use_bias>(random_))(std::get<I>(layer));
-                walk_neuron<I + 1>(layer);
+                if constexpr (I != std::tuple_size<Layer>::value) {
+                    using Neuron = std::tuple_element_t<I, Layer>;
+                    (neuron_walker<Neuron, Neuron::use_bias>(random_))(std::get<I>(layer));
+                    walk_neuron<I + 1>(layer);
+                }
             }
-            template <> inline void walk_neuron<std::tuple_size<Layer>::value>(Layer&) {}
 
             randomizer& random_;
         };
@@ -107,10 +109,11 @@ template <typename Network> class bp_trainer {
             explicit neuron_walker_base(randomizer& rand) : random_(rand) {}
 
             template <size_t J> inline void walk_weight(Neuron& n) {
-                n.set_weight<J>(random_.rand());
-                walk_weight<J + 1>(n);
+                if constexpr (J != Neuron::num_synapses) {
+                    n.template set_weight<J>(random_.rand());
+                    walk_weight<J + 1>(n);
+                }
             }
-            template <> inline void walk_weight<Neuron::num_synapses>(Neuron&) {}
 
             randomizer& random_;
         };
@@ -118,15 +121,15 @@ template <typename Network> class bp_trainer {
         template <typename Neuron, bool use_bias> struct neuron_walker : neuron_walker_base<Neuron> {
             explicit neuron_walker(randomizer& rand) : neuron_walker_base<Neuron>(rand) {}
             inline void operator()(Neuron& n) {
-                walk_weight<0>(n);
-                n.set_bias(random_.rand());
+                this->template walk_weight<0>(n);
+                n.set_bias(this->random_.rand());
             }
         };
 
         template <typename Neuron> struct neuron_walker<Neuron, false> : neuron_walker_base<Neuron> {
             explicit neuron_walker(randomizer& rand) : neuron_walker_base<Neuron>(rand) {}
             inline void operator()(Neuron& n) {
-                walk_weight<0>(n);
+                this->template walk_weight<0>(n);
             }
         };
 
@@ -153,20 +156,21 @@ template <typename Network> class bp_trainer {
 
      private:
         template <size_t K> inline void walk_layer(const input_t& inputs) {
-            using InputLayer = typename network_layer_t<K - 1, Network>;
-            using Input = typename make_tuple_type<value_t, std::tuple_size<InputLayer>::value>::type;
-            using Layer = network_layer_t<K, Network>;
-            using Map = network_map_t<K, Network>;
-            std::get<K>(data_) = layer_walker<Input, Layer, Map>()(std::get<K - 1>(data_), network_.layer<K>());
-            walk_layer<K + 1>(inputs);
+            if constexpr (K == 0) {
+                using Layer = network_layer_t<0, Network>;
+                using Map = network_map_t<0, Network>;
+                std::get<0>(data_) = layer_walker<input_t, Layer, Map>()(inputs, network_.template layer<0>());
+                walk_layer<1>(inputs);
+            } else if constexpr (K < Network::num_layers) {
+                using InputLayer = network_layer_t<K - 1, Network>;
+                using Input = typename make_tuple_type<value_t, std::tuple_size<InputLayer>::value>::type;
+                using Layer = network_layer_t<K, Network>;
+                using Map = network_map_t<K, Network>;
+                std::get<K>(data_) =
+                    layer_walker<Input, Layer, Map>()(std::get<K - 1>(data_), network_.template layer<K>());
+                walk_layer<K + 1>(inputs);
+            }
         }
-        template <> inline void walk_layer<0>(const input_t& inputs) {
-            using Layer = network_layer_t<0, Network>;
-            using Map = network_map_t<0, Network>;
-            std::get<0>(data_) = layer_walker<input_t, Layer, Map>()(inputs, network_.layer<0>());
-            walk_layer<1>(inputs);
-        }
-        template <> inline void walk_layer<Network::num_layers>(const input_t&) {}
 
         template <typename Input, typename Layer, typename Map> struct layer_walker {
             using output_t = typename make_tuple_type<value_t, std::tuple_size<Layer>::value>::type;
@@ -221,31 +225,34 @@ template <typename Network> class bp_trainer {
         }
 
         template <size_t L> inline void walk_behind_layer(const network_data_t& states) {
-            // Hidden layer
-            constexpr size_t K = L - 1;
-            using Deltas = std::tuple_element_t<L, network_data_t>; // Deltas of layer behind this one.
-            using States = std::tuple_element_t<K, network_data_t>; // Neuron values of this layer.
-            using Errors = States;
-            using Layer = network_layer_t<K, Network>;  // This layer in order to get derivatives.
-            using BLayer = network_layer_t<L, Network>; // Layer behind this one in order to get connections weights.
-            using Map = network_map_t<L, Network>;      // Map of connections between this layer and behind one.
-            std::get<K>(deltas_) =
-                blayer_walker<Errors, Deltas, Map, BLayer>(network_.layer<L>())(std::get<L>(deltas_));
-            std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states),
-                                                std::make_index_sequence<std::tuple_size<Layer>::value>());
-            walk_behind_layer<K>(states);
+            if constexpr (L == 0) {
+                // Input layer, do nothing
+            } else if constexpr (L < Network::num_layers) {
+                // Hidden layer
+                constexpr size_t K = L - 1;
+                using Deltas = std::tuple_element_t<L, network_data_t>; // Deltas of layer behind this one.
+                using States = std::tuple_element_t<K, network_data_t>; // Neuron values of this layer.
+                using Errors = States;
+                using Layer = network_layer_t<K, Network>; // This layer in order to get derivatives.
+                using BLayer =
+                    network_layer_t<L, Network>;       // Layer behind this one in order to get connections weights.
+                using Map = network_map_t<L, Network>; // Map of connections between this layer and behind one.
+                std::get<K>(deltas_) =
+                    blayer_walker<Errors, Deltas, Map, BLayer>(network_.template layer<L>())(std::get<L>(deltas_));
+                std::get<K>(deltas_) =
+                    layer_deltas(std::get<K>(deltas_), network_.template layer<K>(), std::get<K>(states),
+                                 std::make_index_sequence<std::tuple_size<Layer>::value>());
+                walk_behind_layer<K>(states);
+            } else {
+                // Output layer
+                constexpr size_t K = Network::num_layers - 1;
+                using Layer = network_layer_t<K, Network>;
+                std::get<K>(deltas_) =
+                    layer_deltas(std::get<K>(deltas_), network_.template layer<K>(), std::get<K>(states),
+                                 std::make_index_sequence<std::tuple_size<Layer>::value>());
+                walk_behind_layer<K>(states);
+            }
         }
-
-        template <> inline void walk_behind_layer<Network::num_layers>(const network_data_t& states) {
-            // Output layer
-            constexpr size_t K = Network::num_layers - 1;
-            using Layer = network_layer_t<K, Network>;
-            std::get<K>(deltas_) = layer_deltas(std::get<K>(deltas_), network_.layer<K>(), std::get<K>(states),
-                                                std::make_index_sequence<std::tuple_size<Layer>::value>());
-            walk_behind_layer<K>(states);
-        }
-
-        template <> inline void walk_behind_layer<0>(const network_data_t&) {}
 
         template <typename States, typename Layer, size_t... I>
         States layer_deltas(const States& errs, const Layer& layer, const States& states, std::index_sequence<I...>) {
@@ -263,12 +270,13 @@ template <typename Network> class bp_trainer {
                 return sum_err;
             }
             template <size_t I> void walk_behind_neuron(const Deltas& deltas, Errors& errs) {
-                using Neuron = std::tuple_element_t<I, BLayer>;
-                using Indexes = typename get_type<I, Map>::type;
-                (bneuron_walker<Neuron, Indexes, Errors>(std::get<I>(blayer_), errs))(std::get<I>(deltas));
-                walk_behind_neuron<I + 1>(deltas, errs);
+                if constexpr (I != blayer_size) {
+                    using Neuron = std::tuple_element_t<I, BLayer>;
+                    using Indexes = typename get_type<I, Map>::type;
+                    (bneuron_walker<Neuron, Indexes, Errors>(std::get<I>(blayer_), errs))(std::get<I>(deltas));
+                    walk_behind_neuron<I + 1>(deltas, errs);
+                }
             }
-            template <> void walk_behind_neuron<blayer_size>(const Deltas&, Errors&) {}
             const BLayer& blayer_;
         };
 
@@ -278,10 +286,11 @@ template <typename Network> class bp_trainer {
                 add_err_by_synap<0>(delta);
             }
             template <size_t J> void add_err_by_synap(const value_t delta) {
-                std::get<get_index<J, Indexes>()>(errs_) += neuron_.weight<J>() * delta;
-                add_err_by_synap<J + 1>(delta);
+                if constexpr (J < Neuron::num_synapses) {
+                    std::get<get_index<J, Indexes>()>(errs_) += neuron_.template weight<J>() * delta;
+                    add_err_by_synap<J + 1>(delta);
+                }
             }
-            template <> void add_err_by_synap<Neuron::num_synapses>(const value_t) {}
             const Neuron& neuron_;
             Errors& errs_;
         };
@@ -335,28 +344,27 @@ template <typename Network> class bp_trainer {
      private:
         template <size_t K>
         inline void walk_layer(const input_t& inputs, const network_data_t& states, const network_data_t& deltas) {
-            using Layer = network_layer_t<K, Network>;
-            using Map = network_map_t<K, Network>;
-            using Deltas = std::tuple_element_t<K, network_data_t>;     // Deltas of this layer.
-            using Inputs = std::tuple_element_t<K - 1, network_data_t>; // Inputs for this layer.
-            using Params = std::tuple_element_t<K, network_params_t>;
-            layer_walker<Layer, Map, Deltas, Inputs, Params>(std::get<K - 1>(states), std::get<K>(params_),
-                                                             network_.layer<K>(), *this)(std::get<K>(deltas));
-            walk_layer<K + 1>(inputs, states, deltas);
+            if constexpr (K == 0) {
+                using Layer = network_layer_t<0, Network>;
+                using Map = network_map_t<0, Network>;
+                using Deltas = std::tuple_element_t<0, network_data_t>; // Deltas of this layer.
+                using Inputs = input_t;                                 // Inputs for this layer.
+                using Params = std::tuple_element_t<0, network_params_t>;
+                layer_walker<Layer, Map, Deltas, Inputs, Params>(
+                    inputs, std::get<0>(params_), network_.template layer<0>(), *this)(std::get<0>(deltas));
+                walk_layer<1>(inputs, states, deltas);
+            } else if constexpr (K < Network::num_layers) {
+                using Layer = network_layer_t<K, Network>;
+                using Map = network_map_t<K, Network>;
+                using Deltas = std::tuple_element_t<K, network_data_t>;     // Deltas of this layer.
+                using Inputs = std::tuple_element_t<K - 1, network_data_t>; // Inputs for this layer.
+                using Params = std::tuple_element_t<K, network_params_t>;
+                layer_walker<Layer, Map, Deltas, Inputs, Params>(std::get<K - 1>(states), std::get<K>(params_),
+                                                                 network_.template layer<K>(),
+                                                                 *this)(std::get<K>(deltas));
+                walk_layer<K + 1>(inputs, states, deltas);
+            }
         }
-        template <>
-        inline void walk_layer<0>(const input_t& inputs, const network_data_t& states, const network_data_t& deltas) {
-            using Layer = network_layer_t<0, Network>;
-            using Map = network_map_t<0, Network>;
-            using Deltas = std::tuple_element_t<0, network_data_t>; // Deltas of this layer.
-            using Inputs = input_t;                                 // Inputs for this layer.
-            using Params = std::tuple_element_t<0, network_params_t>;
-            layer_walker<Layer, Map, Deltas, Inputs, Params>(inputs, std::get<0>(params_), network_.layer<0>(),
-                                                             *this)(std::get<0>(deltas));
-            walk_layer<1>(inputs, states, deltas);
-        }
-        template <>
-        inline void walk_layer<Network::num_layers>(const input_t&, const network_data_t&, const network_data_t&) {}
 
         template <typename Layer, typename Map, typename Deltas, typename Inputs, typename Params> struct layer_walker {
             explicit layer_walker(const Inputs& inputs, Params& params, Layer& layer, const pass_weights& pw)
@@ -367,14 +375,15 @@ template <typename Network> class bp_trainer {
             }
 
             template <size_t I> inline void walk_neuron(const Deltas& deltas) {
-                using Neuron = std::tuple_element_t<I, Layer>;
-                using Indexes = typename get_type<I, Map>::type;
-                using NeuronParams = std::tuple_element_t<I, Params>;
-                neuron_walker<Neuron, Indexes, Inputs, NeuronParams, Neuron::use_bias>(
-                    inputs_, std::get<I>(params_), std::get<I>(layer_), pw_)(std::get<I>(deltas));
-                walk_neuron<I + 1>(deltas);
+                if constexpr (I < std::tuple_size<Layer>::value) {
+                    using Neuron = std::tuple_element_t<I, Layer>;
+                    using Indexes = typename get_type<I, Map>::type;
+                    using NeuronParams = std::tuple_element_t<I, Params>;
+                    neuron_walker<Neuron, Indexes, Inputs, NeuronParams, Neuron::use_bias>(
+                        inputs_, std::get<I>(params_), std::get<I>(layer_), pw_)(std::get<I>(deltas));
+                    walk_neuron<I + 1>(deltas);
+                }
             }
-            template <> inline void walk_neuron<std::tuple_size<Layer>::value>(const Deltas&) {}
 
             const Inputs& inputs_;
             Layer& layer_;
@@ -387,12 +396,13 @@ template <typename Network> class bp_trainer {
                 : neuron_(n), inputs_(inputs), pw_(pw), params_(params) {}
 
             template <size_t J> inline void walk_weight(const value_t delta) {
-                std::get<J>(params_.adj_weights) =
-                    pw_.adjustment(delta, std::get<get_index<J, Indexes>()>(inputs_), std::get<J>(params_.adj_weights));
-                neuron_.set_weight<J>(neuron_.weight<J>() + std::get<J>(params_.adj_weights));
-                walk_weight<J + 1>(delta);
+                if constexpr (J < Neuron::num_synapses) {
+                    std::get<J>(params_.adj_weights) = pw_.adjustment(delta, std::get<get_index<J, Indexes>()>(inputs_),
+                                                                      std::get<J>(params_.adj_weights));
+                    neuron_.template set_weight<J>(neuron_.template weight<J>() + std::get<J>(params_.adj_weights));
+                    walk_weight<J + 1>(delta);
+                }
             }
-            template <> inline void walk_weight<Neuron::num_synapses>(const value_t) {}
 
             const Inputs& inputs_;
             Neuron& neuron_;
@@ -405,9 +415,9 @@ template <typename Network> class bp_trainer {
             explicit neuron_walker(const Inputs& inputs, Params& params, Neuron& n, const pass_weights& pw)
                 : neuron_walker_base<Neuron, Indexes, Inputs, Params>(inputs, params, n, pw) {}
             inline void operator()(const value_t delta) {
-                walk_weight<0>(delta);
-                params_.adj_bias = pw_.adjustment(delta, 1, params_.adj_bias);
-                neuron_.set_bias(neuron_.bias() + params_.adj_bias);
+                this->template walk_weight<0>(delta);
+                this->params_.adj_bias = this->pw_.adjustment(delta, 1, this->params_.adj_bias);
+                this->neuron_.set_bias(this->neuron_.bias() + this->params_.adj_bias);
             }
         };
 
@@ -417,7 +427,7 @@ template <typename Network> class bp_trainer {
             explicit neuron_walker(const Inputs& inputs, Params& params, Neuron& n, const pass_weights& pw)
                 : neuron_walker_base<Neuron, Indexes, Inputs, Params>(inputs, params, n, pw) {}
             inline void operator()(const value_t delta) {
-                walk_weight<0>(delta);
+                this->template walk_weight<0>(delta);
             }
         };
 
@@ -442,11 +452,11 @@ template <typename Network> class bp_trainer {
     }
 
     template <size_t I> inline value_t sum_error(const typename Network::output_t& errs) {
-        return std::get<I>(errs) + sum_error<I + 1>(errs);
-    }
-
-    template <> inline value_t sum_error<output_size>(const typename Network::output_t&) {
-        return 0;
+        if constexpr (I < output_size) {
+            return std::get<I>(errs) + sum_error<I + 1>(errs);
+        } else {
+            return 0;
+        }
     }
 
     inline value_t error_function(value_t expected, value_t actual) {
