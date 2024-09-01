@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include "math/mathlib/nonlsyseq.h"
+#include "nonlsyseq.h"
 
 #include <gtest/gtest.h>
 

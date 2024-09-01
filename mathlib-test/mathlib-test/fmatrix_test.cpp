@@ -1,4 +1,4 @@
-#include "math/mathlib/fmatrix.h"
+#include "fmatrix.h"
 
 #include <gtest/gtest.h>
 

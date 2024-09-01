@@ -39,7 +39,7 @@ template <typename R, typename... Args> class jacobian<R(Args...)> {
         make_jacobian_row(idx, {make_derivative<I>(derivatives_[idx])...});
     }
     template <size_t K> function_t make_derivative(const derivative_t& deriv) {
-        return [&deriv](Args... args) -> R { return deriv.diff<K>(args...); };
+        return [&deriv](Args... args) -> R { return deriv.template diff<K>(args...); };
     }
     void make_jacobian_row(size_t idx, std::initializer_list<function_t>&& list) {
         auto fiter = list.begin();

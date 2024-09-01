@@ -1,4 +1,4 @@
-#include "math/mathlib/fapprox.h"
+#include "fapprox.h"
 
 #include <gtest/gtest.h>
 

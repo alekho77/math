@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES
 
-#include "math/mathlib/derivative.h"
+#include "derivative.h"
 
 #include <gtest/gtest.h>
 

@@ -1,4 +1,4 @@
-#include "math/mathlib/neuron.h"
+#include "neuron.h"
 
 #include <gtest/gtest.h>
 

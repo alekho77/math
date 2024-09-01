@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -17,7 +18,7 @@ namespace mathlib {
 template <typename T> class matrix {
     static_assert(std::is_arithmetic<T>::value == true, "Matrix supports only an arithmetic type.");
 
-    using data_container = std::vector<typename T>;
+    using data_container = std::vector<T>;
     using const_iterator = typename data_container::const_iterator;
     using iterator = typename data_container::iterator;
 
@@ -148,9 +149,8 @@ template <typename T> class matrix {
     data_container data_; // Array of matrix numbers
 };
 
-template <typename T, template <typename> typename Matrix>
-static inline typename Matrix<T> transpose(const typename Matrix<T>& m) {
-    typename Matrix<T> rm{m.cols(), m.rows()};
+template <typename T, template <typename> typename Matrix> static inline Matrix<T> transpose(const Matrix<T>& m) {
+    Matrix<T> rm{m.cols(), m.rows()};
     for (size_t i = 0; i < rm.rows(); i++) {
         for (size_t j = 0; j < rm.cols(); j++) {
             rm[i][j] = m[j][i];
