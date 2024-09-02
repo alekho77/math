@@ -10,6 +10,20 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+execute_process(
+    COMMAND conan install . --build=missing -s compiler.cppstd=17 -if=${CMAKE_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    RESULT_VARIABLE result
+    OUTPUT_VARIABLE output
+    ERROR_VARIABLE error_output
+)
+
+if(NOT result EQUAL 0)
+    message(FATAL_ERROR "Conan install failed: ${error_output}")
+else()
+    message(STATUS "Conan install succeeded: ${output}")
+endif()
+
 enable_testing()
 
 # Define the main path to the header files
