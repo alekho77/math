@@ -10,6 +10,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+enable_testing()
+
 # Define the main path to the header files
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
@@ -23,3 +25,11 @@ target_include_directories(mathlib INTERFACE ${CMAKE_SOURCE_DIR}/include)
 
 # Add the subdirectory with the tests
 add_subdirectory(src/mathlib-test)
+
+add_custom_target(build_and_test
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
+    COMMAND ctest --output-on-failure
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Building and running tests..."
+    USES_TERMINAL
+)
