@@ -6,7 +6,7 @@
 #ifndef MATHLIB_NEURON_H
 #define MATHLIB_NEURON_H
 
-#include "helpers.h"
+#include "mathlib/helpers.h"
 
 #include <cmath>
 

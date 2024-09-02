@@ -6,9 +6,9 @@
 #ifndef MATHLIB_FAPPROX_H
 #define MATHLIB_FAPPROX_H
 
-#include "helpers.h"
-#include "jacobian.h"
-#include "lsyseq.h"
+#include "mathlib/helpers.h"
+#include "mathlib/jacobian.h"
+#include "mathlib/lsyseq.h"
 
 namespace mathlib {
 

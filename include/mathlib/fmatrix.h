@@ -6,8 +6,8 @@
 #ifndef MATHLIB_FMATRIX_H
 #define MATHLIB_FMATRIX_H
 
-#include "helpers.h"
-#include "matrix.h"
+#include "mathlib/helpers.h"
+#include "mathlib/matrix.h"
 
 #include <functional>
 

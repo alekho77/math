@@ -6,8 +6,8 @@
 #ifndef MATHLIB_JACOBIAN_H
 #define MATHLIB_JACOBIAN_H
 
-#include "derivative.h"
-#include "fmatrix.h"
+#include "mathlib/derivative.h"
+#include "mathlib/fmatrix.h"
 
 namespace mathlib {
 

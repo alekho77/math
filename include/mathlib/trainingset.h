@@ -6,7 +6,7 @@
 #ifndef MATHLIB_TRAININGSET_H
 #define MATHLIB_TRAININGSET_H
 
-#include "nnetwork.h"
+#include "mathlib/nnetwork.h"
 
 #include <algorithm>
 #include <istream>

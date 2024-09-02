@@ -1,4 +1,4 @@
-#include "static_indexes.h"
+#include "mathlib/static_indexes.h"
 
 namespace mathlib {
 

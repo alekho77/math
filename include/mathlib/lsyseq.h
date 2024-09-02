@@ -6,8 +6,8 @@
 #ifndef MATHLIB_LSYSEQ_H
 #define MATHLIB_LSYSEQ_H
 
-#include "helpers.h"
-#include "matrix.h"
+#include "mathlib/helpers.h"
+#include "mathlib/matrix.h"
 
 #include <cmath>
 

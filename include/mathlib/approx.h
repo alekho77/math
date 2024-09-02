@@ -6,9 +6,9 @@
 #ifndef MATHLIB_APPROX_H
 #define MATHLIB_APPROX_H
 
-#include "helpers.h"
-#include "lsyseq.h"
-#include "matrix.h"
+#include "mathlib/helpers.h"
+#include "mathlib/lsyseq.h"
+#include "mathlib/matrix.h"
 
 #include <memory>
 #include <vector>

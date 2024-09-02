@@ -6,8 +6,8 @@
 #ifndef MATHLIB_NNETWORK_H
 #define MATHLIB_NNETWORK_H
 
-#include "neuron.h"
-#include "static_indexes.h"
+#include "mathlib/neuron.h"
+#include "mathlib/static_indexes.h"
 
 namespace mathlib {
 

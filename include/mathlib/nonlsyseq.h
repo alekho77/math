@@ -6,8 +6,8 @@
 #ifndef MATHLIB_NONLSYSEQ_H
 #define MATHLIB_NONLSYSEQ_H
 
-#include "jacobian.h"
-#include "lsyseq.h"
+#include "mathlib/jacobian.h"
+#include "mathlib/lsyseq.h"
 
 namespace mathlib {
 

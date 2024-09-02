@@ -15,7 +15,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 find_package(GTest REQUIRED)
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
-include_directories(${CMAKE_SOURCE_DIR}/mathlib)
 include_directories(${GTest_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 

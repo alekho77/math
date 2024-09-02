@@ -1,4 +1,4 @@
-#include "lsyseq.h"
+#include "mathlib/lsyseq.h"
 
 #include <gtest/gtest.h>
 

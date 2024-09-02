@@ -6,7 +6,7 @@
 #ifndef MATHLIB_DERIVATIVE_H
 #define MATHLIB_DERIVATIVE_H
 
-#include "helpers.h"
+#include "mathlib/helpers.h"
 
 #include <functional>
 #include <tuple>

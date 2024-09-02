@@ -6,7 +6,7 @@
 #ifndef MATHLIB_BP_TRAINER_H
 #define MATHLIB_BP_TRAINER_H
 
-#include "nnetwork.h"
+#include "mathlib/nnetwork.h"
 
 #include <random>
 
