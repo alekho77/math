@@ -8,8 +8,7 @@ Checks: >
   readability-identifier-naming  # Adds checks for identifier naming style
 
 WarningsAsErrors: '*'
-HeaderFilterRegex: '.*'
-AnalyzeTemporaryDtors: false
+HeaderFilterRegex: '^(?!.*(gtest|boost)).*'
 FormatStyle: file
 
 CheckOptions:

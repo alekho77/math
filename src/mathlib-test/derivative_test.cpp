@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES
+#define USE_MATH_DEFINES
 
 #include "mathlib/derivative.h"
 
