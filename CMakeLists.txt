@@ -36,6 +36,8 @@ else()
     set(LIBCXX_SETTING "compiler.libcxx=libstdc++11")
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 execute_process(
     COMMAND conan install . --build=missing -s ${LIBCXX_SETTING} -s compiler.cppstd=${CMAKE_CXX_STANDARD} -s build_type=${CMAKE_BUILD_TYPE} -if=${CMAKE_BINARY_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
